@@ -1,1 +1,1 @@
-{"version":3,"file":"teamCoordinator.d.ts","sourceRoot":"","sources":["../../src/tools/teamCoordinator.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,qBAAqB,EAAiB,MAAM,mBAAmB,CAAC;AAIzE,wBAAsB,eAAe,CAAC,MAAM,EAAE,qBAAqB;;;;;GA8JlE"}
+{"version":3,"file":"teamCoordinator.d.ts","sourceRoot":"","sources":["../../src/tools/teamCoordinator.ts"],"names":[],"mappings":"AAIA,eAAO,MAAM,eAAe;;;;;;;;;;;;;;EAyM3B,CAAC"}
