@@ -37,12 +37,26 @@ export const QueryProjectSchema = z.object({
 });
 
 export const GitHubManagerSchema = z.object({
-  action: z.enum(['commit', 'push', 'pull', 'pr', 'issue']),
+  action: z.enum(['commit', 'push', 'pull', 'pr', 'issue', 'status', 'branch', 'tag', 'release', 'workflow']),
   data: z.object({
     message: z.string().optional(),
     branch: z.string().optional(),
     title: z.string().optional(),
-    body: z.string().optional()
+    body: z.string().optional(),
+    files: z.string().optional(),
+    force: z.boolean().optional(),
+    remote: z.string().optional(),
+    rebase: z.boolean().optional(),
+    baseBranch: z.string().optional(),
+    labels: z.array(z.string()).optional(),
+    action: z.string().optional(),
+    name: z.string().optional(),
+    push: z.boolean().optional(),
+    tag: z.string().optional(),
+    notes: z.string().optional(),
+    draft: z.boolean().optional(),
+    prerelease: z.boolean().optional(),
+    workflow: z.string().optional()
   })
 });
 

@@ -34,12 +34,26 @@ exports.QueryProjectSchema = zod_1.z.object({
     limit: zod_1.z.number().default(10)
 });
 exports.GitHubManagerSchema = zod_1.z.object({
-    action: zod_1.z.enum(['commit', 'push', 'pull', 'pr', 'issue']),
+    action: zod_1.z.enum(['commit', 'push', 'pull', 'pr', 'issue', 'status', 'branch', 'tag', 'release', 'workflow']),
     data: zod_1.z.object({
         message: zod_1.z.string().optional(),
         branch: zod_1.z.string().optional(),
         title: zod_1.z.string().optional(),
-        body: zod_1.z.string().optional()
+        body: zod_1.z.string().optional(),
+        files: zod_1.z.string().optional(),
+        force: zod_1.z.boolean().optional(),
+        remote: zod_1.z.string().optional(),
+        rebase: zod_1.z.boolean().optional(),
+        baseBranch: zod_1.z.string().optional(),
+        labels: zod_1.z.array(zod_1.z.string()).optional(),
+        action: zod_1.z.string().optional(),
+        name: zod_1.z.string().optional(),
+        push: zod_1.z.boolean().optional(),
+        tag: zod_1.z.string().optional(),
+        notes: zod_1.z.string().optional(),
+        draft: zod_1.z.boolean().optional(),
+        prerelease: zod_1.z.boolean().optional(),
+        workflow: zod_1.z.string().optional()
     })
 });
 exports.ProjectMetadataSchema = zod_1.z.object({
