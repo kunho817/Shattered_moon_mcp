@@ -1,18 +1,35 @@
+import { TransportType } from '../transport/manager.js';
 export declare class ShatteredMoonMCPServer {
     private server;
-    private transport;
-    private circuitBreakers;
-    constructor();
-    private initializeCircuitBreakers;
-    private setupHandlers;
+    private transportManager;
+    private transportType;
+    constructor(transportType?: TransportType, httpPort?: number);
     start(): Promise<void>;
     private shutdown;
-    getToolHandler(name: string): any;
-}
-declare module '@modelcontextprotocol/sdk/server/index.js' {
-    interface Server {
-        getToolHandler?(name: string): any;
-        getPromptHandler?(name: string): any;
-    }
+    getTransportStatus(): {
+        isRunning: boolean;
+        transports: {
+            stdio: boolean;
+            http: boolean;
+        };
+        httpClients?: number;
+        httpPort?: number;
+    };
+    getHealthCheck(): Promise<{
+        healthy: boolean;
+        transports: {
+            stdio: {
+                status: string;
+            };
+            http: {
+                status: string;
+                port?: number;
+                clients?: number;
+            };
+        };
+        uptime: number;
+    }>;
+    broadcastMessage(message: any): void;
+    sendToClient(clientId: string, message: any): boolean;
 }
 //# sourceMappingURL=index.d.ts.map

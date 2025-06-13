@@ -1,6 +1,12 @@
-import { EventEmitter } from 'events';
-import logger from './logger.js';
-export class AILearningEngine extends EventEmitter {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AILearningEngine = void 0;
+const events_1 = require("events");
+const logger_js_1 = __importDefault(require("./logger.js"));
+class AILearningEngine extends events_1.EventEmitter {
     learning;
     analysisInterval = null;
     constructor() {
@@ -12,7 +18,7 @@ export class AILearningEngine extends EventEmitter {
         };
     }
     async initialize() {
-        logger.info('Initializing AI learning engine');
+        logger_js_1.default.info('Initializing AI learning engine');
         // Start pattern analysis
         this.analysisInterval = setInterval(() => {
             this.analyzePatterns();
@@ -79,7 +85,8 @@ export class AILearningEngine extends EventEmitter {
             high: ['architect', 'design', 'complex', 'system', 'pipeline'],
             critical: ['critical', 'urgent', 'breaking', 'security', 'performance']
         };
-        task.keywords.forEach(keyword => {
+        const keywords = task.keywords || [];
+        keywords.forEach(keyword => {
             const lowerKeyword = keyword.toLowerCase();
             if (complexityKeywords.critical.some(k => lowerKeyword.includes(k))) {
                 score += 4;
@@ -94,7 +101,7 @@ export class AILearningEngine extends EventEmitter {
                 score += 1;
             }
         });
-        return Math.min(score / task.keywords.length, 4);
+        return Math.min(score / Math.max(keywords.length, 1), 4);
     }
     scoreToComplexity(score) {
         if (score >= 3.5)
@@ -109,7 +116,7 @@ export class AILearningEngine extends EventEmitter {
         // Base confidence on pattern matches
         let confidence = 0.5;
         let matches = 0;
-        this.learning.patterns.forEach(pattern => {
+        this.learning.patterns.forEach((pattern, key) => {
             if (pattern.type === 'task' && this.taskMatchesPattern(task, pattern.pattern)) {
                 confidence += pattern.confidence * 0.1;
                 matches++;
@@ -140,7 +147,8 @@ export class AILearningEngine extends EventEmitter {
             performance: ['optimize', 'performance', 'speed', 'profile', 'benchmark'],
             devops: ['deploy', 'ci', 'cd', 'build', 'release']
         };
-        task.keywords.forEach(keyword => {
+        const keywords = task.keywords || [];
+        keywords.forEach(keyword => {
             const lowerKeyword = keyword.toLowerCase();
             Object.entries(teamKeywords).forEach(([team, keywords]) => {
                 if (keywords.some(k => lowerKeyword.includes(k))) {
@@ -164,7 +172,7 @@ export class AILearningEngine extends EventEmitter {
         };
         let estimate = baseEstimates[complexity] || 120;
         // Adjust based on learned patterns
-        this.learning.patterns.forEach(pattern => {
+        this.learning.patterns.forEach((pattern, key) => {
             if (pattern.type === 'task' &&
                 pattern.pattern.complexity === complexity &&
                 pattern.pattern.duration) {
@@ -226,7 +234,7 @@ export class AILearningEngine extends EventEmitter {
         };
         successProbability -= complexityPenalties[analysis.complexity] || 0;
         // Check for error patterns
-        this.learning.patterns.forEach(pattern => {
+        this.learning.patterns.forEach((pattern, key) => {
             if (pattern.type === 'error' && pattern.frequency > 3) {
                 successProbability -= 0.05;
                 potentialIssues.push(`Previous errors with ${pattern.pattern.tool}`);
@@ -255,7 +263,7 @@ export class AILearningEngine extends EventEmitter {
                 }
             }
         });
-        logger.debug(`Pattern analysis complete. Active patterns: ${this.learning.patterns.size}`);
+        logger_js_1.default.debug(`Pattern analysis complete. Active patterns: ${this.learning.patterns.size}`);
     }
     async shutdown() {
         if (this.analysisInterval) {
@@ -263,4 +271,5 @@ export class AILearningEngine extends EventEmitter {
         }
     }
 }
+exports.AILearningEngine = AILearningEngine;
 //# sourceMappingURL=ai.js.map

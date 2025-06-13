@@ -1,9 +1,15 @@
-import { getServices } from '../server/services.js';
-import logger from '../utils/logger.js';
-export async function githubManager(params) {
-    const { stateManager, performanceMonitor, aiEngine } = getServices();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.githubManager = githubManager;
+const services_js_1 = require("../server/services.js");
+const logger_js_1 = __importDefault(require("../utils/logger.js"));
+async function githubManager(params) {
+    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('github_manager', 'execute', async () => {
-        logger.info('Executing GitHub manager', { params });
+        logger_js_1.default.info('Executing GitHub manager', { params });
         const { action, data } = params;
         let result = {};
         const timestamp = new Date().toISOString();
@@ -37,7 +43,7 @@ export async function githubManager(params) {
             });
         }
         catch (error) {
-            logger.error('GitHub operation failed', { action, error: error.message });
+            logger_js_1.default.error('GitHub operation failed', { action, error: error.message });
             result = {
                 success: false,
                 error: error.message,

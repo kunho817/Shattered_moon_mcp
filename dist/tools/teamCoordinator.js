@@ -1,18 +1,24 @@
-import { VIRTUAL_TEAMS } from '../types/index.js';
-import { getServices } from '../server/services.js';
-import logger from '../utils/logger.js';
-export async function teamCoordinator(params) {
-    const { stateManager, performanceMonitor, aiEngine } = getServices();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.teamCoordinator = teamCoordinator;
+const index_js_1 = require("../types/index.js");
+const services_js_1 = require("../server/services.js");
+const logger_js_1 = __importDefault(require("../utils/logger.js"));
+async function teamCoordinator(params) {
+    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('team_coordinator', 'coordinate', async () => {
-        logger.info('Executing team coordinator', { params });
+        logger_js_1.default.info('Executing team coordinator', { params });
         const { action, teams, data } = params;
         const results = [];
         const conflicts = [];
         // Validate teams exist
-        const validTeams = teams.filter(team => team in VIRTUAL_TEAMS);
+        const validTeams = teams.filter(team => team in index_js_1.VIRTUAL_TEAMS);
         if (validTeams.length !== teams.length) {
-            const invalidTeams = teams.filter(team => !(team in VIRTUAL_TEAMS));
-            logger.warn('Invalid teams detected', { invalidTeams });
+            const invalidTeams = teams.filter(team => !(team in index_js_1.VIRTUAL_TEAMS));
+            logger_js_1.default.warn('Invalid teams detected', { invalidTeams });
         }
         // AI-powered coordination analysis (simplified)
         const coordination = {
@@ -29,7 +35,7 @@ export async function teamCoordinator(params) {
                     const team = stateManager.getTeamStatus(teamName);
                     if (team) {
                         // Share data with team (simulated)
-                        logger.info('Sharing data with team', { teamName, data });
+                        logger_js_1.default.info('Sharing data with team', { teamName, data });
                         results.push({
                             team: teamName,
                             status: 'data_shared',
@@ -84,7 +90,7 @@ export async function teamCoordinator(params) {
             case 'notify':
                 // Notify teams of important updates (simulated)
                 for (const teamName of validTeams) {
-                    logger.info('Notifying team', {
+                    logger_js_1.default.info('Notifying team', {
                         teamName,
                         data,
                         priority: coordination.priority || 'normal'

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "shattered-moon-mcp-ts": {
+      "command": "node",
+      "args": ["/home/aizure0817/Game_Engine/shattered_moon_mcp_ts/dist/index.js"],
+      "env": {
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}

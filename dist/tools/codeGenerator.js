@@ -1,9 +1,15 @@
-import { getServices } from '../server/services.js';
-import logger from '../utils/logger.js';
-export async function codeGenerator(params) {
-    const { stateManager, performanceMonitor, aiEngine } = getServices();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.codeGenerator = codeGenerator;
+const services_js_1 = require("../server/services.js");
+const logger_js_1 = __importDefault(require("../utils/logger.js"));
+async function codeGenerator(params) {
+    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('code_generator', 'generate', async () => {
-        logger.info('Executing code generator', { params });
+        logger_js_1.default.info('Executing code generator', { params });
         const { type, name, config } = params;
         const namespace = config?.namespace || 'ShatteredMoon';
         const dependencies = config?.dependencies || [];
@@ -36,7 +42,7 @@ export async function codeGenerator(params) {
         }
         // Apply optimizations if requested
         if (optimize && analysis.optimizations?.length > 0) {
-            logger.info('Applying AI-suggested optimizations', { count: analysis.optimizations.length });
+            logger_js_1.default.info('Applying AI-suggested optimizations', { count: analysis.optimizations.length });
             generatedCode = applyOptimizations(generatedCode, analysis.optimizations);
         }
         // Record pattern for learning (using existing method)

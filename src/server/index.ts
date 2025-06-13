@@ -1,13 +1,8 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  ListResourcesRequestSchema,
-  ListToolsRequestSchema,
-  CallToolRequestSchema,
-  ListPromptsRequestSchema,
-  GetPromptRequestSchema,
-  ErrorCode,
-  McpError
+import { 
+  ListToolsRequestSchema, 
+  ListResourcesRequestSchema, 
+  ListPromptsRequestSchema 
 } from '@modelcontextprotocol/sdk/types.js';
 import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
@@ -16,24 +11,18 @@ import { setupTools } from '../tools/index.js';
 import { setupResources } from '../resources/index.js';
 import { setupPrompts } from '../prompts/index.js';
 import { initializeServices } from './services.js';
+import { TransportManager, createTransportManager, autoDetectTransport, TransportType } from '../transport/manager.js';
 
 // Load environment variables
 dotenv.config();
 
-// Initialize security components
-const rateLimiter = new RateLimiter({
-  windowMs: 60000,
-  maxRequests: 60,
-  burstLimit: 10,
-  burstWindowMs: 10000
-});
-
 export class ShatteredMoonMCPServer {
   private server: Server;
-  private transport: StdioServerTransport;
-  private circuitBreakers: Map<string, CircuitBreaker> = new Map();
+  private transportManager: TransportManager;
+  private transportType: TransportType;
 
-  constructor() {
+  constructor(transportType?: TransportType, httpPort?: number) {
+    this.transportType = transportType || autoDetectTransport();
     this.server = new Server(
       {
         name: 'shattered-moon-mcp',
@@ -45,101 +34,18 @@ export class ShatteredMoonMCPServer {
           tools: {},
           resources: {},
           prompts: {},
-          sampling: {} // New capability
+          sampling: {}
         }
       }
     );
 
-    this.transport = new StdioServerTransport();
-    this.setupHandlers();
-    this.initializeCircuitBreakers();
-  }
-
-  private initializeCircuitBreakers(): void {
-    const tools = [
-      'distributed_task_manager',
-      'code_generate',
-      'team_coordinator',
-      'dynamic_team_expander',
-      'query_project',
-      'github_manager',
-      'project_metadata',
-      'parallel_optimizer',
-      'performance_metrics'
-    ];
-
-    tools.forEach(tool => {
-      this.circuitBreakers.set(tool, new CircuitBreaker());
+    // Create transport manager
+    this.transportManager = createTransportManager(this.server, {
+      mode: this.transportType,
+      httpPort: httpPort || parseInt(process.env.HTTP_PORT || '3000'),
+      enableCors: process.env.NODE_ENV === 'development',
+      rateLimit: true
     });
-  }
-
-  private setupHandlers(): void {
-    // Error handling wrapper
-    const wrapHandler = <T extends any[], R>(
-      handler: (...args: T) => Promise<R>
-    ): ((...args: T) => Promise<R>) => {
-      return async (...args: T): Promise<R> => {
-        try {
-          // Rate limiting check
-          const clientId = 'default'; // In production, extract from connection
-          if (!rateLimiter.check(clientId)) {
-            throw new McpError(
-              ErrorCode.InvalidRequest,
-              'Rate limit exceeded'
-            );
-          }
-
-          return await handler(...args);
-        } catch (error) {
-          logger.error('Handler error', { error });
-          
-          if (error instanceof McpError) {
-            throw error;
-          }
-          
-          throw new McpError(
-            ErrorCode.InternalError,
-            error instanceof Error ? error.message : 'Unknown error'
-          );
-        }
-      };
-    };
-
-    // Tool handlers
-    this.server.setRequestHandler(
-      ListToolsRequestSchema,
-      wrapHandler(async () => {
-        logger.info('Listing available tools');
-        const tools = await setupTools(this.server);
-        return { tools };
-      })
-    );
-
-    // Tool execution is handled by setupTools via request handlers
-    // No additional handler needed here as setupTools sets up its own 'tools/call' handler
-
-    // Resource handlers
-    this.server.setRequestHandler(
-      ListResourcesRequestSchema,
-      wrapHandler(async () => {
-        logger.info('Listing available resources');
-        const resources = await setupResources(this.server);
-        return { resources };
-      })
-    );
-
-    // Prompt handlers
-    this.server.setRequestHandler(
-      ListPromptsRequestSchema,
-      wrapHandler(async () => {
-        logger.info('Listing available prompts');
-        const prompts = await setupPrompts(this.server);
-        return { prompts };
-      })
-    );
-
-    // Prompt execution is handled by setupPrompts via request handlers
-    // No additional handler needed here
   }
 
   async start(): Promise<void> {
@@ -149,15 +55,46 @@ export class ShatteredMoonMCPServer {
       // Initialize services
       await initializeServices();
       
+      // Setup list handlers
+      this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+        logger.info('Listing available tools');
+        const tools = await setupTools(this.server);
+        return { tools };
+      });
+      
+      this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
+        logger.info('Listing available resources');
+        const resources = await setupResources(this.server);
+        return { resources };
+      });
+      
+      this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
+        logger.info('Listing available prompts');
+        const prompts = await setupPrompts(this.server);
+        return { prompts };
+      });
+      
       // Setup components
       await setupTools(this.server);
       await setupResources(this.server);
       await setupPrompts(this.server);
       
-      // Connect transport
-      await this.server.connect(this.transport);
+      // Start transport manager
+      await this.transportManager.start();
       
-      logger.info('Server started successfully');
+      // Set up transport event listeners
+      this.transportManager.on('clientConnected', (data) => {
+        logger.info('Client connected', data);
+      });
+      
+      this.transportManager.on('clientDisconnected', (data) => {
+        logger.info('Client disconnected', data);
+      });
+      
+      logger.info('Server started successfully', {
+        transport: this.transportType,
+        status: this.transportManager.getStatus()
+      });
       
       // Handle shutdown
       process.on('SIGINT', async () => {
@@ -171,14 +108,22 @@ export class ShatteredMoonMCPServer {
       });
       
     } catch (error) {
-      logger.error('Failed to start server', { error });
+      logger.error('Failed to start server', { 
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       process.exit(1);
     }
   }
 
   private async shutdown(): Promise<void> {
     try {
+      logger.info('Shutting down Transport Manager...');
+      await this.transportManager.stop();
+      
+      logger.info('Shutting down MCP Server...');
       await this.server.close();
+      
       logger.info('Server shutdown complete');
       process.exit(0);
     } catch (error) {
@@ -187,16 +132,20 @@ export class ShatteredMoonMCPServer {
     }
   }
 
-  // Extension method for dynamic tool management
-  getToolHandler(name: string): any {
-    return this.server.getToolHandler?.(name);
+  // Additional methods for transport management
+  getTransportStatus() {
+    return this.transportManager.getStatus();
   }
-}
 
-// Extension to Server class for missing methods
-declare module '@modelcontextprotocol/sdk/server/index.js' {
-  interface Server {
-    getToolHandler?(name: string): any;
-    getPromptHandler?(name: string): any;
+  async getHealthCheck() {
+    return await this.transportManager.healthCheck();
+  }
+
+  broadcastMessage(message: any): void {
+    this.transportManager.broadcastToHTTPClients(message);
+  }
+
+  sendToClient(clientId: string, message: any): boolean {
+    return this.transportManager.sendToHTTPClient(clientId, message);
   }
 }

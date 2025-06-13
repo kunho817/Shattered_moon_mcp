@@ -1,9 +1,15 @@
-import { getServices } from '../server/services.js';
-import logger from '../utils/logger.js';
-export async function queryProject(params) {
-    const { stateManager, performanceMonitor, aiEngine } = getServices();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.queryProject = queryProject;
+const services_js_1 = require("../server/services.js");
+const logger_js_1 = __importDefault(require("../utils/logger.js"));
+async function queryProject(params) {
+    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('query_project', 'search', async () => {
-        logger.info('Executing project query', { params });
+        logger_js_1.default.info('Executing project query', { params });
         const { query, scope, limit } = params;
         const results = [];
         const searchStartTime = Date.now();

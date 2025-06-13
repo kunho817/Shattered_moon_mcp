@@ -1,28 +1,27 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { ListResourcesRequestSchema, ListToolsRequestSchema, ListPromptsRequestSchema, ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
-import dotenv from 'dotenv';
-import logger from '../utils/logger.js';
-import { RateLimiter, CircuitBreaker } from '../utils/security.js';
-import { setupTools } from '../tools/index.js';
-import { setupResources } from '../resources/index.js';
-import { setupPrompts } from '../prompts/index.js';
-import { initializeServices } from './services.js';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ShatteredMoonMCPServer = void 0;
+const index_js_1 = require("@modelcontextprotocol/sdk/server/index.js");
+const types_js_1 = require("@modelcontextprotocol/sdk/types.js");
+const dotenv_1 = __importDefault(require("dotenv"));
+const logger_js_1 = __importDefault(require("../utils/logger.js"));
+const index_js_2 = require("../tools/index.js");
+const index_js_3 = require("../resources/index.js");
+const index_js_4 = require("../prompts/index.js");
+const services_js_1 = require("./services.js");
+const manager_js_1 = require("../transport/manager.js");
 // Load environment variables
-dotenv.config();
-// Initialize security components
-const rateLimiter = new RateLimiter({
-    windowMs: 60000,
-    maxRequests: 60,
-    burstLimit: 10,
-    burstWindowMs: 10000
-});
-export class ShatteredMoonMCPServer {
+dotenv_1.default.config();
+class ShatteredMoonMCPServer {
     server;
-    transport;
-    circuitBreakers = new Map();
-    constructor() {
-        this.server = new Server({
+    transportManager;
+    transportType;
+    constructor(transportType, httpPort) {
+        this.transportType = transportType || (0, manager_js_1.autoDetectTransport)();
+        this.server = new index_js_1.Server({
             name: 'shattered-moon-mcp',
             version: '2.0.0',
             description: 'Advanced DirectX 12 game engine development assistant with TypeScript SDK'
@@ -31,114 +30,100 @@ export class ShatteredMoonMCPServer {
                 tools: {},
                 resources: {},
                 prompts: {},
-                sampling: {} // New capability
+                sampling: {}
             }
         });
-        this.transport = new StdioServerTransport();
-        this.setupHandlers();
-        this.initializeCircuitBreakers();
-    }
-    initializeCircuitBreakers() {
-        const tools = [
-            'distributed_task_manager',
-            'code_generate',
-            'team_coordinator',
-            'dynamic_team_expander',
-            'query_project',
-            'github_manager',
-            'project_metadata',
-            'parallel_optimizer',
-            'performance_metrics'
-        ];
-        tools.forEach(tool => {
-            this.circuitBreakers.set(tool, new CircuitBreaker());
+        // Create transport manager
+        this.transportManager = (0, manager_js_1.createTransportManager)(this.server, {
+            mode: this.transportType,
+            httpPort: httpPort || parseInt(process.env.HTTP_PORT || '3000'),
+            enableCors: process.env.NODE_ENV === 'development',
+            rateLimit: true
         });
-    }
-    setupHandlers() {
-        // Error handling wrapper
-        const wrapHandler = (handler) => {
-            return async (...args) => {
-                try {
-                    // Rate limiting check
-                    const clientId = 'default'; // In production, extract from connection
-                    if (!rateLimiter.check(clientId)) {
-                        throw new McpError(ErrorCode.InvalidRequest, 'Rate limit exceeded');
-                    }
-                    return await handler(...args);
-                }
-                catch (error) {
-                    logger.error('Handler error', { error });
-                    if (error instanceof McpError) {
-                        throw error;
-                    }
-                    throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : 'Unknown error');
-                }
-            };
-        };
-        // Tool handlers
-        this.server.setRequestHandler(ListToolsRequestSchema, wrapHandler(async () => {
-            logger.info('Listing available tools');
-            const tools = await setupTools(this.server);
-            return { tools };
-        }));
-        // Tool execution is handled by setupTools via request handlers
-        // No additional handler needed here as setupTools sets up its own 'tools/call' handler
-        // Resource handlers
-        this.server.setRequestHandler(ListResourcesRequestSchema, wrapHandler(async () => {
-            logger.info('Listing available resources');
-            const resources = await setupResources(this.server);
-            return { resources };
-        }));
-        // Prompt handlers
-        this.server.setRequestHandler(ListPromptsRequestSchema, wrapHandler(async () => {
-            logger.info('Listing available prompts');
-            const prompts = await setupPrompts(this.server);
-            return { prompts };
-        }));
-        // Prompt execution is handled by setupPrompts via request handlers
-        // No additional handler needed here
     }
     async start() {
         try {
-            logger.info('Starting Shattered Moon MCP Server v2.0');
+            logger_js_1.default.info('Starting Shattered Moon MCP Server v2.0');
             // Initialize services
-            await initializeServices();
+            await (0, services_js_1.initializeServices)();
+            // Setup list handlers
+            this.server.setRequestHandler(types_js_1.ListToolsRequestSchema, async () => {
+                logger_js_1.default.info('Listing available tools');
+                const tools = await (0, index_js_2.setupTools)(this.server);
+                return { tools };
+            });
+            this.server.setRequestHandler(types_js_1.ListResourcesRequestSchema, async () => {
+                logger_js_1.default.info('Listing available resources');
+                const resources = await (0, index_js_3.setupResources)(this.server);
+                return { resources };
+            });
+            this.server.setRequestHandler(types_js_1.ListPromptsRequestSchema, async () => {
+                logger_js_1.default.info('Listing available prompts');
+                const prompts = await (0, index_js_4.setupPrompts)(this.server);
+                return { prompts };
+            });
             // Setup components
-            await setupTools(this.server);
-            await setupResources(this.server);
-            await setupPrompts(this.server);
-            // Connect transport
-            await this.server.connect(this.transport);
-            logger.info('Server started successfully');
+            await (0, index_js_2.setupTools)(this.server);
+            await (0, index_js_3.setupResources)(this.server);
+            await (0, index_js_4.setupPrompts)(this.server);
+            // Start transport manager
+            await this.transportManager.start();
+            // Set up transport event listeners
+            this.transportManager.on('clientConnected', (data) => {
+                logger_js_1.default.info('Client connected', data);
+            });
+            this.transportManager.on('clientDisconnected', (data) => {
+                logger_js_1.default.info('Client disconnected', data);
+            });
+            logger_js_1.default.info('Server started successfully', {
+                transport: this.transportType,
+                status: this.transportManager.getStatus()
+            });
             // Handle shutdown
             process.on('SIGINT', async () => {
-                logger.info('Shutting down server...');
+                logger_js_1.default.info('Shutting down server...');
                 await this.shutdown();
             });
             process.on('SIGTERM', async () => {
-                logger.info('Shutting down server...');
+                logger_js_1.default.info('Shutting down server...');
                 await this.shutdown();
             });
         }
         catch (error) {
-            logger.error('Failed to start server', { error });
+            logger_js_1.default.error('Failed to start server', {
+                error: error instanceof Error ? error.message : error,
+                stack: error instanceof Error ? error.stack : undefined
+            });
             process.exit(1);
         }
     }
     async shutdown() {
         try {
+            logger_js_1.default.info('Shutting down Transport Manager...');
+            await this.transportManager.stop();
+            logger_js_1.default.info('Shutting down MCP Server...');
             await this.server.close();
-            logger.info('Server shutdown complete');
+            logger_js_1.default.info('Server shutdown complete');
             process.exit(0);
         }
         catch (error) {
-            logger.error('Error during shutdown', { error });
+            logger_js_1.default.error('Error during shutdown', { error });
             process.exit(1);
         }
     }
-    // Extension method for dynamic tool management
-    getToolHandler(name) {
-        return this.server.getToolHandler?.(name);
+    // Additional methods for transport management
+    getTransportStatus() {
+        return this.transportManager.getStatus();
+    }
+    async getHealthCheck() {
+        return await this.transportManager.healthCheck();
+    }
+    broadcastMessage(message) {
+        this.transportManager.broadcastToHTTPClients(message);
+    }
+    sendToClient(clientId, message) {
+        return this.transportManager.sendToHTTPClient(clientId, message);
     }
 }
+exports.ShatteredMoonMCPServer = ShatteredMoonMCPServer;
 //# sourceMappingURL=index.js.map

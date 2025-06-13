@@ -1,18 +1,24 @@
-import { SPECIALISTS } from '../types/index.js';
-import { getServices } from '../server/services.js';
-import logger from '../utils/logger.js';
-export async function dynamicTeamExpander(params) {
-    const { stateManager, performanceMonitor, aiEngine } = getServices();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.dynamicTeamExpander = dynamicTeamExpander;
+const index_js_1 = require("../types/index.js");
+const services_js_1 = require("../server/services.js");
+const logger_js_1 = __importDefault(require("../utils/logger.js"));
+async function dynamicTeamExpander(params) {
+    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('dynamic_team_expander', 'expand', async () => {
-        logger.info('Executing dynamic team expander', { params });
+        logger_js_1.default.info('Executing dynamic team expander', { params });
         const { specialists, context, duration } = params;
         const activatedSpecialists = [];
         const conflicts = [];
         // Validate specialists exist
-        const validSpecialists = specialists.filter(spec => spec in SPECIALISTS);
+        const validSpecialists = specialists.filter(spec => spec in index_js_1.SPECIALISTS);
         if (validSpecialists.length !== specialists.length) {
-            const invalidSpecs = specialists.filter(spec => !(spec in SPECIALISTS));
-            logger.warn('Invalid specialists detected', { invalidSpecs });
+            const invalidSpecs = specialists.filter(spec => !(spec in index_js_1.SPECIALISTS));
+            logger_js_1.default.warn('Invalid specialists detected', { invalidSpecs });
         }
         // AI-powered expansion analysis (simplified)
         const expansion = {
@@ -22,7 +28,7 @@ export async function dynamicTeamExpander(params) {
         };
         // Check for specialist conflicts and resource constraints
         for (const specialistType of validSpecialists) {
-            const specialist = SPECIALISTS[specialistType];
+            const specialist = index_js_1.SPECIALISTS[specialistType];
             // Simulate current load
             const currentLoad = Math.random() * 0.8; // Random load up to 80%
             if (currentLoad >= 0.9) {
@@ -126,7 +132,7 @@ ${teamOptimization.recommendations?.map((r) => `- ${r}`).join('\n') || '- Curren
 
 ${teamOptimization.suggestedAdditions?.length > 0 ? `
 **Suggested Additional Specialists**:
-${teamOptimization.suggestedAdditions.map((s) => `- ${s} (${SPECIALISTS[s]?.expertise || 'Unknown expertise'})`).join('\n')}` : ''}
+${teamOptimization.suggestedAdditions.map((s) => `- ${s} (${index_js_1.SPECIALISTS[s]?.expertise || 'Unknown expertise'})`).join('\n')}` : ''}
 
 The team has been dynamically expanded with specialized expertise to handle the current context effectively.`
                 }]

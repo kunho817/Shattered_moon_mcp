@@ -3,7 +3,24 @@ import { getServices } from '../server/services.js';
 import logger from '../utils/logger.js';
 
 export async function distributedTaskManager(params: DistributedTaskParams) {
-  const { stateManager, performanceMonitor, aiEngine } = getServices();
+  logger.info('distributedTaskManager called', { params });
+  
+  let services;
+  try {
+    services = getServices();
+    logger.info('Services retrieved successfully');
+  } catch (error) {
+    logger.error('Services not initialized', { error });
+    return {
+      content: [{
+        type: "text" as const,
+        text: "Error: MCP services not properly initialized. Please restart the server."
+      }]
+    };
+  }
+  
+  const { stateManager, performanceMonitor, aiEngine } = services;
+  logger.info('Services destructured successfully');
   
   return await performanceMonitor.measure(
     'distributed_task_manager',
@@ -12,25 +29,41 @@ export async function distributedTaskManager(params: DistributedTaskParams) {
       logger.info('Executing distributed task manager', { params });
 
       // Extract keywords from task description
+      logger.info('Extracting keywords from task');
       const keywords = params.task.toLowerCase().split(/\s+/)
         .filter(word => word.length > 3);
+      logger.info('Keywords extracted', { keywords });
 
       // AI-powered workload analysis
+      logger.info('Starting AI workload analysis');
       const analysis = aiEngine.analyzeWorkload({
         description: params.task,
         keywords
       });
+      logger.info('AI analysis completed', { analysis });
 
       // Override with user-specified complexity if provided
       const complexity = params.complexity || analysis.complexity;
 
       // Determine teams to involve
-      let teams = params.teams || analysis.suggestedTeams;
+      logger.info('Determining teams', { paramsTeams: params.teams, suggestedTeams: analysis.suggestedTeams });
+      let teams = params.teams || analysis.suggestedTeams || [];
+      logger.info('Initial teams', { teams, type: typeof teams, isArray: Array.isArray(teams) });
+      
+      // Ensure teams is an array
+      if (!Array.isArray(teams)) {
+        logger.warn('Teams is not array, converting', { teams });
+        teams = [];
+      }
       
       // Validate teams
+      logger.info('Validating teams against VIRTUAL_TEAMS', { teams, virtualTeamsKeys: Object.keys(VIRTUAL_TEAMS) });
       teams = teams.filter(team => team in VIRTUAL_TEAMS);
+      logger.info('Teams after validation', { teams });
+      
       if (teams.length === 0) {
-        teams = analysis.suggestedTeams;
+        teams = analysis.suggestedTeams || Object.keys(VIRTUAL_TEAMS).slice(0, 2);
+        logger.info('Using fallback teams', { teams });
       }
 
       // Create main task
@@ -54,7 +87,9 @@ export async function distributedTaskManager(params: DistributedTaskParams) {
       const assignments: any[] = [];
       const subtasks: string[] = [];
 
+      logger.info('Starting team distribution', { teams, teamsLength: teams.length, teamsType: typeof teams });
       for (const teamName of teams) {
+        logger.info('Processing team', { teamName });
         const team = stateManager.getTeamStatus(teamName);
         if (!team) continue;
 

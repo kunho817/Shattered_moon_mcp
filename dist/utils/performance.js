@@ -1,11 +1,17 @@
-import { EventEmitter } from 'events';
-import logger from './logger.js';
-export class PerformanceMonitor extends EventEmitter {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PerformanceMonitor = void 0;
+const events_1 = require("events");
+const logger_js_1 = __importDefault(require("./logger.js"));
+class PerformanceMonitor extends events_1.EventEmitter {
     metrics = [];
     stats = new Map();
     cleanupInterval = null;
     async initialize() {
-        logger.info('Initializing performance monitor');
+        logger_js_1.default.info('Initializing performance monitor');
         // Start cleanup of old metrics
         this.cleanupInterval = setInterval(() => {
             this.cleanupOldMetrics();
@@ -21,7 +27,7 @@ export class PerformanceMonitor extends EventEmitter {
         this.emit('metricRecorded', fullMetric);
         // Log slow operations
         if (metric.duration > 5000) {
-            logger.warn('Slow operation detected', {
+            logger_js_1.default.warn('Slow operation detected', {
                 tool: metric.tool,
                 operation: metric.operation,
                 duration: metric.duration
@@ -178,7 +184,7 @@ export class PerformanceMonitor extends EventEmitter {
         this.metrics = this.metrics.filter(m => m.timestamp > cutoffTime);
         const removed = beforeCount - this.metrics.length;
         if (removed > 0) {
-            logger.info(`Cleaned up ${removed} old metrics`);
+            logger_js_1.default.info(`Cleaned up ${removed} old metrics`);
         }
     }
     async shutdown() {
@@ -208,4 +214,5 @@ export class PerformanceMonitor extends EventEmitter {
         }
     }
 }
+exports.PerformanceMonitor = PerformanceMonitor;
 //# sourceMappingURL=performance.js.map

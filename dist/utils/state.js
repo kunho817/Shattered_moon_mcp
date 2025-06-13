@@ -1,6 +1,12 @@
-import { EventEmitter } from 'events';
-import logger from './logger.js';
-export class ProjectStateManager extends EventEmitter {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProjectStateManager = void 0;
+const events_1 = require("events");
+const logger_js_1 = __importDefault(require("./logger.js"));
+class ProjectStateManager extends events_1.EventEmitter {
     state;
     persistInterval = null;
     constructor() {
@@ -20,7 +26,7 @@ export class ProjectStateManager extends EventEmitter {
         };
     }
     async initialize() {
-        logger.info('Initializing project state manager');
+        logger_js_1.default.info('Initializing project state manager');
         // Initialize default teams
         const defaultTeams = [
             'planning', 'backend', 'frontend', 'testing',
@@ -47,7 +53,8 @@ export class ProjectStateManager extends EventEmitter {
             ...task,
             id,
             status: task.status || 'pending',
-            dependencies: task.dependencies || []
+            dependencies: task.dependencies || [],
+            assignedTeams: task.assignedTeams || []
         };
         this.state.tasks.set(id, newTask);
         this.state.metadata.totalTasks++;
@@ -100,7 +107,8 @@ export class ProjectStateManager extends EventEmitter {
             throw new Error(`Task not found: ${taskId}`);
         }
         // Remove from assigned teams
-        task.assignedTeams.forEach(teamId => {
+        const assignedTeams = task.assignedTeams || [];
+        assignedTeams.forEach(teamId => {
             const team = this.state.teams.get(teamId);
             if (team) {
                 team.currentTasks = team.currentTasks.filter(id => id !== taskId);
@@ -171,7 +179,7 @@ export class ProjectStateManager extends EventEmitter {
     }
     async persist() {
         // In production, this would save to a database
-        logger.debug('Persisting project state');
+        logger_js_1.default.debug('Persisting project state');
     }
     async shutdown() {
         if (this.persistInterval) {
@@ -180,4 +188,5 @@ export class ProjectStateManager extends EventEmitter {
         await this.persist();
     }
 }
+exports.ProjectStateManager = ProjectStateManager;
 //# sourceMappingURL=state.js.map

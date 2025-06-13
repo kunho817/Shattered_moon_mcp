@@ -125,7 +125,8 @@ export class AILearningEngine extends EventEmitter {
       critical: ['critical', 'urgent', 'breaking', 'security', 'performance']
     };
 
-    task.keywords.forEach(keyword => {
+    const keywords = task.keywords || [];
+    keywords.forEach(keyword => {
       const lowerKeyword = keyword.toLowerCase();
       if (complexityKeywords.critical.some(k => lowerKeyword.includes(k))) {
         score += 4;
@@ -138,7 +139,7 @@ export class AILearningEngine extends EventEmitter {
       }
     });
 
-    return Math.min(score / task.keywords.length, 4);
+    return Math.min(score / Math.max(keywords.length, 1), 4);
   }
 
   private scoreToComplexity(score: number): 'low' | 'medium' | 'high' | 'critical' {
@@ -153,7 +154,7 @@ export class AILearningEngine extends EventEmitter {
     let confidence = 0.5;
     let matches = 0;
 
-    this.learning.patterns.forEach(pattern => {
+    this.learning.patterns.forEach((pattern, key) => {
       if (pattern.type === 'task' && this.taskMatchesPattern(task, pattern.pattern)) {
         confidence += pattern.confidence * 0.1;
         matches++;
@@ -193,7 +194,8 @@ export class AILearningEngine extends EventEmitter {
       devops: ['deploy', 'ci', 'cd', 'build', 'release']
     };
 
-    task.keywords.forEach(keyword => {
+    const keywords = task.keywords || [];
+    keywords.forEach(keyword => {
       const lowerKeyword = keyword.toLowerCase();
       Object.entries(teamKeywords).forEach(([team, keywords]) => {
         if (keywords.some(k => lowerKeyword.includes(k))) {
@@ -222,7 +224,7 @@ export class AILearningEngine extends EventEmitter {
     let estimate = baseEstimates[complexity as keyof typeof baseEstimates] || 120;
 
     // Adjust based on learned patterns
-    this.learning.patterns.forEach(pattern => {
+    this.learning.patterns.forEach((pattern, key) => {
       if (pattern.type === 'task' && 
           pattern.pattern.complexity === complexity &&
           pattern.pattern.duration) {
@@ -302,7 +304,7 @@ export class AILearningEngine extends EventEmitter {
     successProbability -= complexityPenalties[analysis.complexity] || 0;
 
     // Check for error patterns
-    this.learning.patterns.forEach(pattern => {
+    this.learning.patterns.forEach((pattern, key) => {
       if (pattern.type === 'error' && pattern.frequency > 3) {
         successProbability -= 0.05;
         potentialIssues.push(`Previous errors with ${pattern.pattern.tool}`);

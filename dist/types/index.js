@@ -1,72 +1,75 @@
-import { z } from 'zod';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SPECIALISTS = exports.VIRTUAL_TEAMS = exports.PromptArgumentsSchema = exports.ResourceListSchema = exports.PerformanceMetricsSchema = exports.ParallelOptimizerSchema = exports.ProjectMetadataSchema = exports.GitHubManagerSchema = exports.QueryProjectSchema = exports.DynamicTeamExpanderSchema = exports.TeamCoordinatorSchema = exports.CodeGenerateSchema = exports.DistributedTaskSchema = void 0;
+const zod_1 = require("zod");
 // Tool parameter schemas
-export const DistributedTaskSchema = z.object({
-    task: z.string().describe('Task description'),
-    complexity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
-    teams: z.array(z.string()).optional(),
-    priority: z.number().min(1).max(10).default(5)
+exports.DistributedTaskSchema = zod_1.z.object({
+    task: zod_1.z.string().describe('Task description'),
+    complexity: zod_1.z.enum(['low', 'medium', 'high', 'critical']).optional(),
+    teams: zod_1.z.array(zod_1.z.string()).optional(),
+    priority: zod_1.z.number().min(1).max(10).default(5)
 });
-export const CodeGenerateSchema = z.object({
-    type: z.enum(['component', 'system', 'shader', 'event', 'utility']),
-    name: z.string(),
-    config: z.object({
-        namespace: z.string().optional(),
-        dependencies: z.array(z.string()).optional(),
-        optimize: z.boolean().default(true)
+exports.CodeGenerateSchema = zod_1.z.object({
+    type: zod_1.z.enum(['component', 'system', 'shader', 'event', 'utility']),
+    name: zod_1.z.string(),
+    config: zod_1.z.object({
+        namespace: zod_1.z.string().optional(),
+        dependencies: zod_1.z.array(zod_1.z.string()).optional(),
+        optimize: zod_1.z.boolean().default(true)
     }).optional()
 });
-export const TeamCoordinatorSchema = z.object({
-    action: z.enum(['share', 'sync', 'request', 'notify']),
-    teams: z.array(z.string()),
-    data: z.any()
+exports.TeamCoordinatorSchema = zod_1.z.object({
+    action: zod_1.z.enum(['share', 'sync', 'request', 'notify']),
+    teams: zod_1.z.array(zod_1.z.string()),
+    data: zod_1.z.any()
 });
-export const DynamicTeamExpanderSchema = z.object({
-    specialists: z.array(z.string()),
-    context: z.string(),
-    duration: z.number().optional()
+exports.DynamicTeamExpanderSchema = zod_1.z.object({
+    specialists: zod_1.z.array(zod_1.z.string()),
+    context: zod_1.z.string(),
+    duration: zod_1.z.number().optional()
 });
-export const QueryProjectSchema = z.object({
-    query: z.string(),
-    scope: z.enum(['code', 'docs', 'all']).default('all'),
-    limit: z.number().default(10)
+exports.QueryProjectSchema = zod_1.z.object({
+    query: zod_1.z.string(),
+    scope: zod_1.z.enum(['code', 'docs', 'all']).default('all'),
+    limit: zod_1.z.number().default(10)
 });
-export const GitHubManagerSchema = z.object({
-    action: z.enum(['commit', 'push', 'pull', 'pr', 'issue']),
-    data: z.object({
-        message: z.string().optional(),
-        branch: z.string().optional(),
-        title: z.string().optional(),
-        body: z.string().optional()
+exports.GitHubManagerSchema = zod_1.z.object({
+    action: zod_1.z.enum(['commit', 'push', 'pull', 'pr', 'issue']),
+    data: zod_1.z.object({
+        message: zod_1.z.string().optional(),
+        branch: zod_1.z.string().optional(),
+        title: zod_1.z.string().optional(),
+        body: zod_1.z.string().optional()
     })
 });
-export const ProjectMetadataSchema = z.object({
-    action: z.enum(['get', 'update', 'analyze']),
-    metric: z.string().optional()
+exports.ProjectMetadataSchema = zod_1.z.object({
+    action: zod_1.z.enum(['get', 'update', 'analyze']),
+    metric: zod_1.z.string().optional()
 });
-export const ParallelOptimizerSchema = z.object({
-    tasks: z.array(z.object({
-        id: z.string(),
-        complexity: z.number(),
-        dependencies: z.array(z.string()).optional()
+exports.ParallelOptimizerSchema = zod_1.z.object({
+    tasks: zod_1.z.array(zod_1.z.object({
+        id: zod_1.z.string(),
+        complexity: zod_1.z.number(),
+        dependencies: zod_1.z.array(zod_1.z.string()).optional()
     })),
-    threads: z.number().optional()
+    threads: zod_1.z.number().optional()
 });
-export const PerformanceMetricsSchema = z.object({
-    metric: z.enum(['tool', 'overall', 'trends', 'recommendations']),
-    timeRange: z.number().optional()
+exports.PerformanceMetricsSchema = zod_1.z.object({
+    metric: zod_1.z.enum(['tool', 'overall', 'trends', 'recommendations']),
+    timeRange: zod_1.z.number().optional()
 });
 // Resource schemas
-export const ResourceListSchema = z.object({
-    type: z.enum(['files', 'teams', 'specialists', 'metrics']).optional()
+exports.ResourceListSchema = zod_1.z.object({
+    type: zod_1.z.enum(['files', 'teams', 'specialists', 'metrics']).optional()
 });
 // Prompt schemas
-export const PromptArgumentsSchema = z.object({
-    task: z.string().optional(),
-    context: z.string().optional(),
-    style: z.string().optional()
+exports.PromptArgumentsSchema = zod_1.z.object({
+    task: zod_1.z.string().optional(),
+    context: zod_1.z.string().optional(),
+    style: zod_1.z.string().optional()
 });
 // Team definitions
-export const VIRTUAL_TEAMS = {
+exports.VIRTUAL_TEAMS = {
     planning: {
         name: 'Planning Team',
         specialists: ['game-designer', 'ux-researcher', 'product-manager']
@@ -97,7 +100,7 @@ export const VIRTUAL_TEAMS = {
     }
 };
 // Specialist definitions
-export const SPECIALISTS = {
+exports.SPECIALISTS = {
     'shader-wizard': { expertise: 'HLSL shader optimization and effects' },
     'dx12-specialist': { expertise: 'DirectX 12 pipeline and rendering' },
     'memory-expert': { expertise: 'Memory management and optimization' },

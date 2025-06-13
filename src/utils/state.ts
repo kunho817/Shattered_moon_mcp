@@ -101,7 +101,8 @@ export class ProjectStateManager extends EventEmitter {
       ...task,
       id,
       status: task.status || 'pending',
-      dependencies: task.dependencies || []
+      dependencies: task.dependencies || [],
+      assignedTeams: task.assignedTeams || []
     };
 
     this.state.tasks.set(id, newTask);
@@ -166,7 +167,8 @@ export class ProjectStateManager extends EventEmitter {
     }
 
     // Remove from assigned teams
-    task.assignedTeams.forEach(teamId => {
+    const assignedTeams = task.assignedTeams || [];
+    assignedTeams.forEach(teamId => {
       const team = this.state.teams.get(teamId);
       if (team) {
         team.currentTasks = team.currentTasks.filter(id => id !== taskId);

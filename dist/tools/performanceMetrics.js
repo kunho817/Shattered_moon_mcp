@@ -1,9 +1,15 @@
-import { getServices } from '../server/services.js';
-import logger from '../utils/logger.js';
-export async function performanceMetrics(params) {
-    const { stateManager, performanceMonitor, aiEngine } = getServices();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.performanceMetrics = performanceMetrics;
+const services_js_1 = require("../server/services.js");
+const logger_js_1 = __importDefault(require("../utils/logger.js"));
+async function performanceMetrics(params) {
+    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('performance_metrics', 'analyze', async () => {
-        logger.info('Executing performance metrics analysis', { params });
+        logger_js_1.default.info('Executing performance metrics analysis', { params });
         const { metric, timeRange } = params;
         const analysisTimeRange = timeRange || 1; // Default to 1 hour
         const timestamp = new Date().toISOString();

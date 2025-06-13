@@ -1,6 +1,12 @@
-import { z } from 'zod';
-import logger from './logger.js';
-export class RateLimiter {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CircuitBreaker = exports.SecurityValidator = exports.RateLimiter = void 0;
+const zod_1 = require("zod");
+const logger_js_1 = __importDefault(require("./logger.js"));
+class RateLimiter {
     config;
     requests = new Map();
     blocked = new Map();
@@ -48,7 +54,7 @@ export class RateLimiter {
         if (violations >= 5) {
             const blockDuration = Math.min(violations * 5 * 60000, 3600000); // Max 1 hour
             this.blocked.set(identifier, Date.now() + blockDuration);
-            logger.warn(`Blocked ${identifier} for ${blockDuration}ms due to rate limit violations`);
+            logger_js_1.default.warn(`Blocked ${identifier} for ${blockDuration}ms due to rate limit violations`);
         }
     }
     reset(identifier) {
@@ -57,8 +63,9 @@ export class RateLimiter {
         this.blocked.delete(identifier);
     }
 }
+exports.RateLimiter = RateLimiter;
 // Input validation and sanitization
-export class SecurityValidator {
+class SecurityValidator {
     static injectionPatterns = {
         sql: /(\b(union|select|insert|update|delete|drop|create|alter|exec|execute|script|javascript|eval)\b)|(-{2})|(\|\|)|(\/\*)|(\*\/)/gi,
         xss: /<script[^>]*>|<\/script>|javascript:|on\w+\s*=|<iframe|<object|<embed|<link|<meta/gi,
@@ -70,8 +77,8 @@ export class SecurityValidator {
             return schema.parse(input);
         }
         catch (error) {
-            if (error instanceof z.ZodError) {
-                logger.error('Input validation failed', { errors: error.errors });
+            if (error instanceof zod_1.z.ZodError) {
+                logger_js_1.default.error('Input validation failed', { errors: error.errors });
                 throw new Error(`Invalid input: ${error.errors.map(e => e.message).join(', ')}`);
             }
             throw error;
@@ -80,7 +87,7 @@ export class SecurityValidator {
     static detectInjection(input) {
         for (const [type, pattern] of Object.entries(this.injectionPatterns)) {
             if (pattern.test(input)) {
-                logger.warn(`Potential ${type} injection detected`, { input });
+                logger_js_1.default.warn(`Potential ${type} injection detected`, { input });
                 return true;
             }
         }
@@ -123,8 +130,9 @@ export class SecurityValidator {
         return data;
     }
 }
+exports.SecurityValidator = SecurityValidator;
 // Circuit breaker for service protection
-export class CircuitBreaker {
+class CircuitBreaker {
     threshold;
     timeout;
     resetTimeout;
@@ -165,11 +173,11 @@ export class CircuitBreaker {
         this.lastFailureTime = Date.now();
         if (this.failures >= this.threshold) {
             this.state = 'open';
-            logger.error(`Circuit breaker opened after ${this.failures} failures`);
+            logger_js_1.default.error(`Circuit breaker opened after ${this.failures} failures`);
             // Schedule reset
             setTimeout(() => {
                 this.state = 'half-open';
-                logger.info('Circuit breaker moved to half-open state');
+                logger_js_1.default.info('Circuit breaker moved to half-open state');
             }, this.resetTimeout);
         }
     }
@@ -177,10 +185,11 @@ export class CircuitBreaker {
         this.failures = 0;
         this.state = 'closed';
         this.lastFailureTime = 0;
-        logger.info('Circuit breaker reset to closed state');
+        logger_js_1.default.info('Circuit breaker reset to closed state');
     }
     getState() {
         return this.state;
     }
 }
+exports.CircuitBreaker = CircuitBreaker;
 //# sourceMappingURL=security.js.map

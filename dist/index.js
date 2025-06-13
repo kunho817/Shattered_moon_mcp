@@ -1,13 +1,18 @@
 #!/usr/bin/env node
-import { ShatteredMoonMCPServer } from './server/index.js';
-import logger from './utils/logger.js';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const index_js_1 = require("./server/index.js");
+const logger_js_1 = __importDefault(require("./utils/logger.js"));
 async function main() {
     try {
-        const server = new ShatteredMoonMCPServer();
+        const server = new index_js_1.ShatteredMoonMCPServer();
         await server.start();
     }
     catch (error) {
-        logger.error('Fatal error', { error });
+        logger_js_1.default.error('Fatal error', { error });
         process.exit(1);
     }
 }
