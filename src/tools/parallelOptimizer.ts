@@ -28,7 +28,8 @@ export async function parallelOptimizer(params: ParallelOptimizerParams) {
       // Calculate optimization metrics
       const metrics = calculateOptimizationMetrics(tasks, executionResult);
 
-      // Record optimization pattern for learning
+      // Parallel optimization pattern recording replaced by Claude Code analytics
+      logger.info('Parallel optimization completed', {
         type: 'parallel_optimization',
         complexity: 'high',
         teams: ['performance'],

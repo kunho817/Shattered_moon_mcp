@@ -50,11 +50,12 @@ export async function codeGenerator(params: CodeGenerateParams) {
         generatedCode = applyOptimizations(generatedCode, analysis.optimizations);
       }
 
-      // Record pattern for learning (using existing method)
+      // Code generation pattern recording replaced by Claude Code analytics
+      logger.info('Code generation completed', {
         type: 'code_generation',
         complexity: analysis.complexity,
         teams: [type],
-        duration: 5, // Quick code generation
+        duration: 5,
         success: true
       });
 

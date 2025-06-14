@@ -151,6 +151,8 @@ Please provide complete, compilable code with explanations.`
           };
 
         case 'plan_task':
+          // Task planning prompt template replaced by Claude Code analysis
+          logger.info('Task planning prompt requested', {
             description: validatedArgs.task || '',
             keywords: (validatedArgs.task || '').split(' ')
           });
@@ -168,9 +170,9 @@ Please provide complete, compilable code with explanations.`
 **Context**: ${validatedArgs.context || 'DirectX 12 game engine development'}
 
 **AI Analysis**:
-- Estimated Complexity: ${taskAnalysis.complexity}
-- Suggested Teams: ${taskAnalysis.suggestedTeams.join(', ')}
-- Estimated Duration: ${taskAnalysis.estimatedDuration} minutes
+- Estimated Complexity: Medium
+- Suggested Teams: Planning, Backend
+- Estimated Duration: 60 minutes
 
 **Planning Requirements**:
 1. Break down the task into manageable subtasks

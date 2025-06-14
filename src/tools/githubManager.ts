@@ -68,16 +68,9 @@ export async function githubManager(params: GitHubManagerParams) {
             throw new Error(`Unsupported GitHub action: ${action}`);
         }
 
-        // Record GitHub pattern for learning
+        // GitHub pattern recording replaced by Claude Code analytics
+        logger.info('GitHub operation completed', {
           type: 'github_operation',
-          complexity: getOperationComplexity(action),
-          teams: ['devops'],
-          duration: result.duration || 1000,
-          success: true
-        });
-
-        // Record successful operation in AI engine for learning
-          type: 'github_operation_success',
           complexity: getOperationComplexity(action),
           teams: ['devops'],
           duration: result.duration || 1000,

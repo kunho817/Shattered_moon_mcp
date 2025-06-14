@@ -8,7 +8,7 @@ const services_js_1 = require("../server/services.js");
 const claudeCodePerformanceMonitor_js_1 = require("../utils/claudeCodePerformanceMonitor.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 async function performanceMetrics(params) {
-    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
+    const { stateManager, performanceMonitor } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('performance_metrics', 'analyze', async () => {
         logger_js_1.default.info('Executing performance metrics analysis', { params });
         const { metric, timeRange } = params;
@@ -37,8 +37,8 @@ async function performanceMetrics(params) {
             default:
                 throw new Error(`Unsupported performance metric: ${metric}`);
         }
-        // Record performance analysis pattern
-        aiEngine.recordTaskPattern({
+        // Performance analysis pattern recording replaced by Claude Code analytics
+        logger_js_1.default.info('Performance analysis completed', {
             type: 'performance_analysis',
             complexity: 'medium',
             teams: ['performance'],

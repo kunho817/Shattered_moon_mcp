@@ -7,7 +7,7 @@ exports.queryProject = queryProject;
 const services_js_1 = require("../server/services.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 async function queryProject(params) {
-    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
+    const { stateManager, performanceMonitor } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('query_project', 'search', async () => {
         logger_js_1.default.info('Executing project query', { params });
         const { query, scope, limit } = params;
@@ -49,8 +49,8 @@ async function queryProject(params) {
             .sort((a, b) => b.relevanceScore - a.relevanceScore)
             .slice(0, limit);
         const searchDuration = Date.now() - searchStartTime;
-        // Record search pattern for learning
-        aiEngine.recordTaskPattern({
+        // Search pattern recording replaced by Claude Code analytics
+        logger_js_1.default.info('Project search completed', {
             type: 'search',
             complexity: 'low',
             teams: ['query'],

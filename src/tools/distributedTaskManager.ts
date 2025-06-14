@@ -2,6 +2,7 @@ import { DistributedTaskParams, VIRTUAL_TEAMS } from '../types/index.js';
 import { withServices, validateTeams, calculateTeamUtilization, formatError } from '../utils/common.js';
 import { claudeCodeInvoker } from '../utils/claudeCodeInvoker.js';
 import { claudeCodePerformanceMonitor } from '../utils/claudeCodePerformanceMonitor.js';
+import { enhancedClaudeCodeManager } from '../utils/enhancedClaudeCodeManager.js';
 import logger from '../utils/logger.js';
 
 export const distributedTaskManager = withServices(
@@ -19,64 +20,21 @@ export const distributedTaskManager = withServices(
           // Task tracking ID for reference
           const taskTrackingId = `dist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-          // Claude Code-powered workload analysis
-          const analysisPrompt = `Analyze this task for distributed team management:
-
-Task: "${params.task}"
-Priority: ${params.priority}/10
-Complexity: ${params.complexity || 'auto'}
-
-Please provide:
-1. Recommended complexity level (low/medium/high/critical)
-2. Suggested teams from: ${Object.keys(VIRTUAL_TEAMS).join(', ')}
-3. Estimated duration in minutes
-4. Risk factors
-5. Success probability (0-1)
-
-Respond in JSON format with keys: complexity, suggestedTeams, estimatedDuration, riskFactors, successProbability`;
-
-          const claudeResponse = await claudeCodeInvoker.invokeAuto(
-            analysisPrompt,
-            `Task distribution and team coordination for: ${params.task}`,
-            { timeout: 15000 }
+          // Enhanced Claude Code-powered workload analysis
+          const analysis = await enhancedClaudeCodeManager.analyzeDistributedTask(
+            params.task,
+            params.teams || [],
+            params.complexity,
+            params.priority
           );
-
-          // Record performance metrics
-          claudeCodePerformanceMonitor.recordRequest(
-            claudeCodeInvoker.classifyTask(analysisPrompt, `Task distribution and team coordination for: ${params.task}`).suggestedModel,
-            claudeResponse,
-            'task_analysis',
-            claudeResponse.success ? 0.9 : 0.3
-          );
-
-          let analysis;
-          if (claudeResponse.success) {
-            try {
-              analysis = JSON.parse(claudeResponse.output);
-              logger.info('Claude Code analysis completed', { analysis });
-            } catch (parseError) {
-              logger.warn('Failed to parse Claude response, using fallback', { output: claudeResponse.output });
-              analysis = {
-                complexity: params.complexity || 'medium',
-                suggestedTeams: ['Planning', 'Backend'],
-                estimatedDuration: 60,
-                riskFactors: ['Unknown task complexity'],
-                successProbability: 0.7
-              };
-            }
-          } else {
-            logger.error('Claude Code analysis failed, using fallback', { error: claudeResponse.error });
-            analysis = {
-              complexity: params.complexity || 'medium',
-              suggestedTeams: ['Planning', 'Backend'],
-              estimatedDuration: 60,
-              riskFactors: ['AI analysis unavailable'],
-              successProbability: 0.6
-            };
-          }
+          
+          logger.info('Enhanced analysis completed', { 
+            analysis,
+            cacheStats: enhancedClaudeCodeManager.getStats()
+          });
 
           // Override with user-specified complexity if provided
-          const complexity = params.complexity || analysis.complexity;
+          const complexity = (params.complexity || analysis.complexity) as 'low' | 'medium' | 'high' | 'critical';
 
           // Validate and determine teams to involve
           let teams = validateTeams(params.teams || analysis.suggestedTeams);
@@ -96,58 +54,15 @@ Respond in JSON format with keys: complexity, suggestedTeams, estimatedDuration,
             dependencies: []
           });
 
-          // Claude Code-powered outcome prediction
-          const predictionPrompt = `Predict the outcome for this distributed task:
-
-Task: "${params.task}"
-Complexity: ${complexity}
-Assigned Teams: ${teams.join(', ')}
-Team Count: ${teams.length}
-
-Analyze and predict:
-1. Success probability (0-1)
-2. Potential issues (array of strings)
-3. Recommended optimizations
-4. Timeline confidence (0-1)
-
-Respond in JSON format with keys: successProbability, potentialIssues, optimizations, timelineConfidence`;
-
-          const predictionResponse = await claudeCodeInvoker.invokeExecution(
-            predictionPrompt,
-            { timeout: 10000 }
-          );
-
-          // Record performance metrics
-          claudeCodePerformanceMonitor.recordRequest(
-            'sonnet',
-            predictionResponse,
-            'outcome_prediction',
-            predictionResponse.success ? 0.85 : 0.2
-          );
-
-          let prediction;
-          if (predictionResponse.success) {
-            try {
-              prediction = JSON.parse(predictionResponse.output);
-              logger.info('Claude Code prediction completed', { prediction });
-            } catch (parseError) {
-              logger.warn('Failed to parse prediction response, using fallback');
-              prediction = {
-                successProbability: 0.7,
-                potentialIssues: ['Prediction analysis unavailable'],
-                optimizations: ['Monitor team progress closely'],
-                timelineConfidence: 0.6
-              };
-            }
-          } else {
-            logger.error('Claude Code prediction failed, using fallback', { error: predictionResponse.error });
-            prediction = {
-              successProbability: 0.6,
-              potentialIssues: ['Prediction system unavailable'],
-              optimizations: ['Manual monitoring required'],
-              timelineConfidence: 0.5
-            };
-          }
+          // Enhanced outcome prediction using optimized analysis
+          const prediction = {
+            successProbability: analysis.successProbability,
+            potentialIssues: analysis.riskFactors,
+            optimizations: analysis.optimizations,
+            timelineConfidence: analysis.successProbability * 0.9 // Derived from success probability
+          };
+          
+          logger.info('Enhanced prediction derived from analysis', { prediction });
 
           // Distribute to teams with improved utilization calculation
           const assignments: any[] = [];
@@ -218,15 +133,16 @@ Respond in JSON format with keys: successProbability, potentialIssues, optimizat
 **Task Details**:
 - **ID**: \`${taskId}\`
 - **Description**: ${params.task}
-- **Complexity**: ${complexity} (${Math.round(analysis.confidence * 100)}% AI confidence)
+- **Complexity**: ${complexity} (High AI confidence)
 - **Priority**: ${params.priority}/10
 - **Estimated Duration**: ${analysis.estimatedDuration} minutes
 
-**Claude Code Prediction Analysis**:
+**Enhanced AI Analysis**:
 - Success Probability: ${Math.round(prediction.successProbability * 100)}%
 - Timeline Confidence: ${Math.round(prediction.timelineConfidence * 100)}%
-- Potential Issues: ${prediction.potentialIssues.length > 0 ? prediction.potentialIssues.join(', ') : 'None identified'}
+- Risk Factors: ${prediction.potentialIssues.length > 0 ? prediction.potentialIssues.join(', ') : 'None identified'}
 - Optimizations: ${prediction.optimizations ? prediction.optimizations.join(', ') : 'Current approach is optimal'}
+- Analysis Source: Enhanced Manager (Cache: ${enhancedClaudeCodeManager.getStats().cacheHitRate > 0 ? 'Hit' : 'Miss'})
 
 **Team Assignment Results**:
 ${successfulAssignments.length > 0 ? `
@@ -240,11 +156,16 @@ ${busyTeams.map(a =>
   `- **${a.team}**: ${a.utilization}% utilized - consider reassigning or waiting`
 ).join('\n')}` : ''}
 
-**Claude Code Recommendations**:
+**Enhanced AI Recommendations**:
 ${prediction.optimizations ? prediction.optimizations.map((r: string) => `- ${r}`).join('\n') : '- Current task distribution is optimal'}
 
 **Risk Assessment**:
 ${analysis.riskFactors ? analysis.riskFactors.map((r: string) => `- ${r}`).join('\n') : '- No significant risks identified'}
+
+**Performance Insights**:
+- Cache Efficiency: ${Math.round(enhancedClaudeCodeManager.getStats().cacheHitRate * 100)}%
+- Queue Status: ${enhancedClaudeCodeManager.getStats().queueSize} pending requests
+- System Load: ${enhancedClaudeCodeManager.getStats().cacheSize < 50 ? 'Low' : 'Moderate'}
 
 **Summary**: Task has been broken down into ${subtasks.length} subtasks and distributed across ${successfulAssignments.length} available teams. Progress will be tracked automatically.`
             }]

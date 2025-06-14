@@ -53,7 +53,8 @@ export async function queryProject(params: QueryProjectParams) {
 
       const searchDuration = Date.now() - searchStartTime;
 
-      // Record search pattern for learning
+      // Search pattern recording replaced by Claude Code analytics
+      logger.info('Project search completed', {
         type: 'search',
         complexity: 'low',
         teams: ['query'],

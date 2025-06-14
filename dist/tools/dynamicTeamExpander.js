@@ -9,7 +9,7 @@ const common_js_1 = require("../utils/common.js");
 const claudeCodeInvoker_js_1 = require("../utils/claudeCodeInvoker.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 exports.dynamicTeamExpander = (0, common_js_1.withServices)('dynamicTeamExpander', async (services, params) => {
-    const { stateManager, performanceMonitor, aiEngine } = services;
+    const { stateManager, performanceMonitor } = services;
     return await performanceMonitor.measure('dynamic_team_expander', 'expand', async () => {
         try {
             logger_js_1.default.info('Executing dynamic team expander', { params });
@@ -189,8 +189,8 @@ Respond in JSON format with keys: successRate, productivityBoost, qualityScore, 
                 logger_js_1.default.error('Claude Code performance prediction failed, using fallback', { error: performanceResponse.error });
                 performance = predictTeamPerformance(activatedSpecialists, conflicts, expansion, duration || 60);
             }
-            // Record expansion pattern for learning with enhanced data
-            aiEngine.recordTaskPattern({
+            // Team expansion pattern recording replaced by Claude Code analytics
+            logger_js_1.default.info('Team expansion completed', {
                 type: 'team_expansion',
                 complexity: expansion.urgency,
                 teams: validSpecialists,

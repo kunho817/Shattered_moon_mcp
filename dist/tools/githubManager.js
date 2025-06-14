@@ -10,7 +10,7 @@ const child_process_1 = require("child_process");
 const util_1 = require("util");
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
 async function githubManager(params) {
-    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
+    const { stateManager, performanceMonitor } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('github_manager', 'execute', async () => {
         logger_js_1.default.info('Executing GitHub manager', { params });
         const { action, data } = params;
@@ -53,17 +53,9 @@ async function githubManager(params) {
                 default:
                     throw new Error(`Unsupported GitHub action: ${action}`);
             }
-            // Record GitHub pattern for learning
-            aiEngine.recordTaskPattern({
+            // GitHub pattern recording replaced by Claude Code analytics
+            logger_js_1.default.info('GitHub operation completed', {
                 type: 'github_operation',
-                complexity: getOperationComplexity(action),
-                teams: ['devops'],
-                duration: result.duration || 1000,
-                success: true
-            });
-            // Record successful operation in AI engine for learning
-            aiEngine.recordTaskPattern({
-                type: 'github_operation_success',
                 complexity: getOperationComplexity(action),
                 teams: ['devops'],
                 duration: result.duration || 1000,

@@ -7,7 +7,7 @@ exports.parallelOptimizer = parallelOptimizer;
 const services_js_1 = require("../server/services.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 async function parallelOptimizer(params) {
-    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
+    const { stateManager, performanceMonitor } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('parallel_optimizer', 'optimize', async () => {
         logger_js_1.default.info('Executing parallel optimizer', { params });
         const { tasks, threads } = params;
@@ -22,8 +22,8 @@ async function parallelOptimizer(params) {
         const executionResult = simulateParallelExecution(optimizedSchedule, systemThreads);
         // Calculate optimization metrics
         const metrics = calculateOptimizationMetrics(tasks, executionResult);
-        // Record optimization pattern for learning
-        aiEngine.recordTaskPattern({
+        // Parallel optimization pattern recording replaced by Claude Code analytics
+        logger_js_1.default.info('Parallel optimization completed', {
             type: 'parallel_optimization',
             complexity: 'high',
             teams: ['performance'],

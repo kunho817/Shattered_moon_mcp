@@ -7,7 +7,7 @@ exports.codeGenerator = codeGenerator;
 const services_js_1 = require("../server/services.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 async function codeGenerator(params) {
-    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
+    const { stateManager, performanceMonitor } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('code_generator', 'generate', async () => {
         logger_js_1.default.info('Executing code generator', { params });
         const { type, name, config } = params;
@@ -45,12 +45,12 @@ async function codeGenerator(params) {
             logger_js_1.default.info('Applying AI-suggested optimizations', { count: analysis.optimizations.length });
             generatedCode = applyOptimizations(generatedCode, analysis.optimizations);
         }
-        // Record pattern for learning (using existing method)
-        aiEngine.recordTaskPattern({
+        // Code generation pattern recording replaced by Claude Code analytics
+        logger_js_1.default.info('Code generation completed', {
             type: 'code_generation',
             complexity: analysis.complexity,
             teams: [type],
-            duration: 5, // Quick code generation
+            duration: 5,
             success: true
         });
         const response = {

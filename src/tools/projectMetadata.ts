@@ -31,7 +31,8 @@ export async function projectMetadata(params: ProjectMetadataParams) {
           throw new Error(`Unsupported metadata action: ${action}`);
       }
 
-      // Record metadata operation pattern
+      // Metadata operation pattern recording replaced by Claude Code analytics
+      logger.info('Metadata operation completed', {
         type: 'metadata_operation',
         complexity: 'low',
         teams: ['backend'],

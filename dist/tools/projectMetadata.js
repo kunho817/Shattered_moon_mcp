@@ -7,7 +7,7 @@ exports.projectMetadata = projectMetadata;
 const services_js_1 = require("../server/services.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 async function projectMetadata(params) {
-    const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
+    const { stateManager, performanceMonitor } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('project_metadata', 'process', async () => {
         logger_js_1.default.info('Executing project metadata operation', { params });
         const { action, metric } = params;
@@ -27,8 +27,8 @@ async function projectMetadata(params) {
             default:
                 throw new Error(`Unsupported metadata action: ${action}`);
         }
-        // Record metadata operation pattern
-        aiEngine.recordTaskPattern({
+        // Metadata operation pattern recording replaced by Claude Code analytics
+        logger_js_1.default.info('Metadata operation completed', {
             type: 'metadata_operation',
             complexity: 'low',
             teams: ['backend'],

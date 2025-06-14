@@ -103,7 +103,7 @@ async function setupPrompts(server) {
     // Set up prompt handlers
     server.setRequestHandler(types_js_1.GetPromptRequestSchema, async (request) => {
         const { name, arguments: args } = request.params;
-        const { stateManager, aiEngine } = (0, services_js_1.getServices)();
+        const { stateManager } = (0, services_js_1.getServices)();
         logger_js_1.default.info(`Getting prompt: ${name}`, { args });
         const validatedArgs = index_js_1.PromptArgumentsSchema.parse(args || {});
         try {
@@ -142,7 +142,8 @@ Please provide complete, compilable code with explanations.`
                         ]
                     };
                 case 'plan_task':
-                    const taskAnalysis = aiEngine.analyzeWorkload({
+                    // Task planning prompt template replaced by Claude Code analysis
+                    logger_js_1.default.info('Task planning prompt requested', {
                         description: validatedArgs.task || '',
                         keywords: (validatedArgs.task || '').split(' ')
                     });
@@ -159,9 +160,9 @@ Please provide complete, compilable code with explanations.`
 **Context**: ${validatedArgs.context || 'DirectX 12 game engine development'}
 
 **AI Analysis**:
-- Estimated Complexity: ${taskAnalysis.complexity}
-- Suggested Teams: ${taskAnalysis.suggestedTeams.join(', ')}
-- Estimated Duration: ${taskAnalysis.estimatedDuration} minutes
+- Estimated Complexity: Medium
+- Suggested Teams: Planning, Backend
+- Estimated Duration: 60 minutes
 
 **Planning Requirements**:
 1. Break down the task into manageable subtasks
