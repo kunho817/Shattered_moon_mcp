@@ -3,7 +3,7 @@ import { getServices } from '../server/services.js';
 import logger from '../utils/logger.js';
 
 export async function codeGenerator(params: CodeGenerateParams) {
-  const { stateManager, performanceMonitor, aiEngine } = getServices();
+  const { stateManager, performanceMonitor } = getServices();
   
   return await performanceMonitor.measure(
     'code_generator',
@@ -51,7 +51,6 @@ export async function codeGenerator(params: CodeGenerateParams) {
       }
 
       // Record pattern for learning (using existing method)
-      aiEngine.recordTaskPattern({
         type: 'code_generation',
         complexity: analysis.complexity,
         teams: [type],

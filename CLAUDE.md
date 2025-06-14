@@ -255,3 +255,20 @@ Comprehensive error handling with:
 - Detailed logging for debugging
 
 This TypeScript implementation provides enhanced type safety, better IDE support, and improved maintainability while maintaining full compatibility with the MCP protocol.
+
+## 🗂️ Deprecated Systems
+
+### Archive Location: `/Archive/deprecated_ai_systems/`
+
+**Archived Components (2025-06-14)**:
+- **Internal AI Engine** (`ai.ts`): Legacy learning engine with 87.99% accuracy
+- **Learning Integration** (`LearningIntegration.ts`): Legacy pattern recognition system  
+- **MCP Learning Lab**: Complete learning framework with 500+ scenarios
+
+**Migration Rationale**:
+- **Accuracy Improvement**: 87.99% → 95%+ target with Claude Code
+- **Model Selection**: Fixed AI → Dynamic (Opus for planning, Sonnet for execution)
+- **Maintenance**: Internal complexity → External API simplicity
+- **Quality**: Limited reasoning → Advanced language model capabilities
+
+**Current Architecture**: All AI functionality migrated to Claude Code bash integration with intelligent model selection and comprehensive performance monitoring.

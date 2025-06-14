@@ -5,7 +5,7 @@ import { claudeCodeInvoker } from '../utils/claudeCodeInvoker.js';
 import logger from '../utils/logger.js';
 
 export async function performanceMetrics(params: PerformanceMetricsParams) {
-  const { stateManager, performanceMonitor, aiEngine } = getServices();
+  const { stateManager, performanceMonitor } = getServices();
   
   return await performanceMonitor.measure(
     'performance_metrics',
@@ -42,8 +42,8 @@ export async function performanceMetrics(params: PerformanceMetricsParams) {
           throw new Error(`Unsupported performance metric: ${metric}`);
       }
 
-      // Record performance analysis pattern
-      aiEngine.recordTaskPattern({
+      // Performance analysis pattern recording replaced by Claude Code analytics
+      logger.info('Performance analysis completed', {
         type: 'performance_analysis',
         complexity: 'medium',
         teams: ['performance'],

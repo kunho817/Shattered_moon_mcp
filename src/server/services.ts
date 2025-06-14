@@ -1,18 +1,14 @@
 import logger from '../utils/logger.js';
 import { ProjectStateManager } from '../utils/state.js';
 import { PerformanceMonitor } from '../utils/performance.js';
-import { AILearningEngine } from '../utils/ai.js';
 import { SessionManager } from '../session/manager.js';
 import { StateManager } from '../session/state.js';
-import { LearningIntegration, initializeLearningIntegration } from '../services/LearningIntegration.js';
 
 export interface Services {
   stateManager: ProjectStateManager;
   performanceMonitor: PerformanceMonitor;
-  aiEngine: AILearningEngine;
   sessionManager: SessionManager;
   globalStateManager: StateManager;
-  learningIntegration: LearningIntegration;
 }
 
 let services: Services | null = null;
@@ -27,7 +23,6 @@ export async function initializeServices(): Promise<Services> {
   try {
     const stateManager = new ProjectStateManager();
     const performanceMonitor = new PerformanceMonitor();
-    const aiEngine = new AILearningEngine();
     const sessionManager = new SessionManager({
       defaultSessionDuration: 24 * 60 * 60 * 1000, // 24 hours
       maxSessions: 1000,
@@ -42,7 +37,6 @@ export async function initializeServices(): Promise<Services> {
     // Initialize each service
     await stateManager.initialize();
     await performanceMonitor.initialize();
-    await aiEngine.initialize();
     
     // Initialize state namespaces
     globalStateManager.createNamespace('sessions', { persistent: true });
@@ -50,16 +44,11 @@ export async function initializeServices(): Promise<Services> {
     globalStateManager.createNamespace('user_preferences', { persistent: true });
     globalStateManager.createNamespace('temp', { persistent: false, defaultTTL: 300000 }); // 5 minutes TTL
 
-    // Initialize learning integration
-    const learningIntegration = initializeLearningIntegration(performanceMonitor);
-
     services = {
       stateManager,
       performanceMonitor,
-      aiEngine,
       sessionManager,
-      globalStateManager,
-      learningIntegration
+      globalStateManager
     };
 
     logger.info('Services initialized successfully');

@@ -3,7 +3,7 @@ import { getServices } from '../server/services.js';
 import logger from '../utils/logger.js';
 
 export async function projectMetadata(params: ProjectMetadataParams) {
-  const { stateManager, performanceMonitor, aiEngine } = getServices();
+  const { stateManager, performanceMonitor } = getServices();
   
   return await performanceMonitor.measure(
     'project_metadata',
@@ -32,7 +32,6 @@ export async function projectMetadata(params: ProjectMetadataParams) {
       }
 
       // Record metadata operation pattern
-      aiEngine.recordTaskPattern({
         type: 'metadata_operation',
         complexity: 'low',
         teams: ['backend'],

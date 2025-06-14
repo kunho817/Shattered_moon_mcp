@@ -7,7 +7,7 @@ import logger from '../utils/logger.js';
 export const distributedTaskManager = withServices(
   'distributedTaskManager',
   async (services, params: DistributedTaskParams) => {
-    const { stateManager, performanceMonitor, aiEngine, learningIntegration } = services;
+    const { stateManager, performanceMonitor } = services;
     
     return await performanceMonitor.measure(
       'distributed_task_manager',
@@ -16,17 +16,8 @@ export const distributedTaskManager = withServices(
         try {
           logger.info('Executing distributed task manager', { params });
 
-          // Track task start for learning
+          // Task tracking ID for reference
           const taskTrackingId = `dist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          learningIntegration.trackTaskStart(taskTrackingId, {
-            description: params.task,
-            type: 'distributed_task',
-            complexity: params.complexity,
-            priority: params.priority
-          }, {
-            teams: params.teams,
-            urgency: params.priority ? params.priority / 10 : 0.5
-          });
 
           // Claude Code-powered workload analysis
           const analysisPrompt = `Analyze this task for distributed team management:
@@ -213,14 +204,7 @@ Respond in JSON format with keys: successProbability, potentialIssues, optimizat
             startTime: new Date()
           });
 
-          // Record pattern for learning with enhanced data
-          aiEngine.recordTaskPattern({
-            type: 'distributed',
-            complexity,
-            teams,
-            duration: analysis.estimatedDuration,
-            success: assignments.filter(a => a.status === 'assigned').length > 0
-          });
+          // Pattern recording replaced by Claude Code analytics
 
           // Generate enhanced response
           const successfulAssignments = assignments.filter(a => a.status === 'assigned');
@@ -266,20 +250,20 @@ ${analysis.riskFactors ? analysis.riskFactors.map((r: string) => `- ${r}`).join(
             }]
           };
 
-          // Track task completion for learning
+          // Task completion tracking
           const success = successfulAssignments.length > 0;
-          learningIntegration.trackTaskComplete(
-            taskTrackingId,
+          logger.info('Task completion tracked', {
+            taskId: taskTrackingId,
             success,
             complexity,
             teams
-          );
+          });
 
           return response;
         } catch (error) {
-          // Track failed task for learning
+          // Track failed task
           const fallbackTaskId = `dist_${Date.now()}_error`;
-          learningIntegration.trackTaskComplete(fallbackTaskId, false);
+          logger.error('Task execution failed', { taskId: fallbackTaskId, error });
           return formatError('distributedTaskManager', error, { params });
         }
       }

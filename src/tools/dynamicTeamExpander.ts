@@ -6,7 +6,7 @@ import logger from '../utils/logger.js';
 export const dynamicTeamExpander = withServices(
   'dynamicTeamExpander',
   async (services, params: DynamicTeamExpanderParams) => {
-    const { stateManager, performanceMonitor, aiEngine } = services;
+    const { stateManager, performanceMonitor } = services;
     
     return await performanceMonitor.measure(
       'dynamic_team_expander',
@@ -236,10 +236,10 @@ Respond in JSON format with keys: successRate, productivityBoost, qualityScore, 
             );
           }
 
-          // Record expansion pattern for learning with enhanced data
-          aiEngine.recordTaskPattern({
+          // Team expansion pattern recording replaced by Claude Code analytics
+          logger.info('Team expansion completed', {
             type: 'team_expansion',
-            complexity: expansion.urgency as any,
+            complexity: expansion.urgency,
             teams: validSpecialists,
             duration: duration || 60,
             success: activatedSpecialists.length > 0 && conflicts.filter(c => c.severity === 'high').length === 0

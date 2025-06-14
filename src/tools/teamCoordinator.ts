@@ -6,7 +6,7 @@ import logger from '../utils/logger.js';
 export const teamCoordinator = withServices(
   'teamCoordinator',
   async (services, params: TeamCoordinatorParams) => {
-    const { stateManager, performanceMonitor, aiEngine } = services;
+    const { stateManager, performanceMonitor } = services;
     
     return await performanceMonitor.measure(
       'team_coordinator',
@@ -239,8 +239,8 @@ Respond in JSON format with array of: {conflictId, strategy, priority, estimated
           break;
       }
 
-          // Record coordination pattern for learning with enhanced data
-          aiEngine.recordTaskPattern({
+          // Coordination pattern recording replaced by Claude Code analytics
+          logger.info('Team coordination completed', {
             type: 'team_coordination',
             complexity: coordination.complexity,
             teams: validTeams,

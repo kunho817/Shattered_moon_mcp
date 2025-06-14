@@ -3,7 +3,7 @@ import { getServices } from '../server/services.js';
 import logger from '../utils/logger.js';
 
 export async function queryProject(params: QueryProjectParams) {
-  const { stateManager, performanceMonitor, aiEngine } = getServices();
+  const { stateManager, performanceMonitor } = getServices();
   
   return await performanceMonitor.measure(
     'query_project',
@@ -54,7 +54,6 @@ export async function queryProject(params: QueryProjectParams) {
       const searchDuration = Date.now() - searchStartTime;
 
       // Record search pattern for learning
-      aiEngine.recordTaskPattern({
         type: 'search',
         complexity: 'low',
         teams: ['query'],

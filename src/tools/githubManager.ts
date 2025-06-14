@@ -17,7 +17,7 @@ interface GitConfig {
 }
 
 export async function githubManager(params: GitHubManagerParams) {
-  const { stateManager, performanceMonitor, aiEngine } = getServices();
+  const { stateManager, performanceMonitor } = getServices();
   
   return await performanceMonitor.measure(
     'github_manager',
@@ -69,7 +69,6 @@ export async function githubManager(params: GitHubManagerParams) {
         }
 
         // Record GitHub pattern for learning
-        aiEngine.recordTaskPattern({
           type: 'github_operation',
           complexity: getOperationComplexity(action),
           teams: ['devops'],
@@ -78,7 +77,6 @@ export async function githubManager(params: GitHubManagerParams) {
         });
 
         // Record successful operation in AI engine for learning
-        aiEngine.recordTaskPattern({
           type: 'github_operation_success',
           complexity: getOperationComplexity(action),
           teams: ['devops'],

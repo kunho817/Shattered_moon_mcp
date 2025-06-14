@@ -108,7 +108,7 @@ export async function setupPrompts(server: Server): Promise<any[]> {
     GetPromptRequestSchema,
     async (request) => {
       const { name, arguments: args } = request.params;
-    const { stateManager, aiEngine } = getServices();
+    const { stateManager } = getServices();
 
     logger.info(`Getting prompt: ${name}`, { args });
 
@@ -151,7 +151,6 @@ Please provide complete, compilable code with explanations.`
           };
 
         case 'plan_task':
-          const taskAnalysis = aiEngine.analyzeWorkload({
             description: validatedArgs.task || '',
             keywords: (validatedArgs.task || '').split(' ')
           });

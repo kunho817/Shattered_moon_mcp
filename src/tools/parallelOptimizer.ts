@@ -3,7 +3,7 @@ import { getServices } from '../server/services.js';
 import logger from '../utils/logger.js';
 
 export async function parallelOptimizer(params: ParallelOptimizerParams) {
-  const { stateManager, performanceMonitor, aiEngine } = getServices();
+  const { stateManager, performanceMonitor } = getServices();
   
   return await performanceMonitor.measure(
     'parallel_optimizer',
@@ -29,7 +29,6 @@ export async function parallelOptimizer(params: ParallelOptimizerParams) {
       const metrics = calculateOptimizationMetrics(tasks, executionResult);
 
       // Record optimization pattern for learning
-      aiEngine.recordTaskPattern({
         type: 'parallel_optimization',
         complexity: 'high',
         teams: ['performance'],
