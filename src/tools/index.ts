@@ -232,6 +232,45 @@ export async function setupTools(server: Server): Promise<any[]> {
         },
         required: ['metric']
       }
+    },
+    {
+      name: 'real_time_task_monitor',
+      description: 'Advanced real-time monitoring and optimization of distributed task execution',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          planId: {
+            type: 'string',
+            description: 'Specific execution plan ID to monitor'
+          },
+          action: {
+            type: 'string',
+            enum: ['status', 'optimize', 'alerts', 'metrics', 'rebalance'],
+            description: 'Monitoring action to perform'
+          },
+          filters: {
+            type: 'object',
+            properties: {
+              teams: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Filter by specific teams'
+              },
+              taskStatus: {
+                type: 'string',
+                enum: ['pending', 'in_progress', 'completed', 'blocked'],
+                description: 'Filter by task status'
+              },
+              alertLevel: {
+                type: 'string',
+                enum: ['info', 'warning', 'error'],
+                description: 'Filter by alert level'
+              }
+            }
+          }
+        },
+        required: ['action']
+      }
     }
   ];
 
@@ -285,6 +324,12 @@ export async function setupTools(server: Server): Promise<any[]> {
           const perfParams = PerformanceMetricsSchema.parse(args);
           const { performanceMetrics } = await import('./performanceMetrics.js');
           return await performanceMetrics(perfParams);
+        
+        case 'real_time_task_monitor':
+          // Simple validation since this is a new tool
+          const monitorParams = args as any;
+          const { realTimeTaskMonitor } = await import('./realTimeTaskMonitor.js');
+          return await realTimeTaskMonitor(monitorParams);
         
         default:
           throw new McpError(
