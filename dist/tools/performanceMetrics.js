@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.performanceMetrics = performanceMetrics;
 const services_js_1 = require("../server/services.js");
+const claudeCodePerformanceMonitor_js_1 = require("../utils/claudeCodePerformanceMonitor.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 async function performanceMetrics(params) {
     const { stateManager, performanceMonitor, aiEngine } = (0, services_js_1.getServices)();
@@ -22,16 +23,16 @@ async function performanceMetrics(params) {
         };
         switch (metric) {
             case 'tool':
-                result = analyzeToolPerformance(analysisTimeRange);
+                result = await analyzeClaudeCodePerformance(analysisTimeRange);
                 break;
             case 'overall':
-                result = analyzeOverallPerformance(analysisTimeRange, stateManager);
+                result = await analyzeOverallPerformance(analysisTimeRange, stateManager);
                 break;
             case 'trends':
-                result = analyzeTrends(analysisTimeRange);
+                result = await analyzeClaudeCodeTrends(analysisTimeRange);
                 break;
             case 'recommendations':
-                result = generateRecommendations(analysisTimeRange);
+                result = await generateClaudeCodeRecommendations(analysisTimeRange);
                 break;
             default:
                 throw new Error(`Unsupported performance metric: ${metric}`);
@@ -63,8 +64,13 @@ ${result.insights?.map((insight) => `- ${insight}`).join('\n') || '- System is p
 ${result.alerts?.length > 0 ? `**Performance Alerts** 🚨:
 ${result.alerts.map((alert) => `- **${alert.severity}**: ${alert.message} (${alert.metric})`).join('\n')}
 
-` : ''}**AI Recommendations**:
+` : ''}**Claude Code AI Recommendations**:
 ${result.recommendations?.map((rec) => `- ${rec}`).join('\n') || '- Continue monitoring performance regularly'}
+
+**Claude Code Performance Summary**:
+- Total Requests: ${result.claudeCodeMetrics?.totalRequests || 0}
+- Success Rate: ${Math.round((result.claudeCodeMetrics?.successRate || 0) * 100)}%
+- Cache Hit Rate: ${Math.round((result.claudeCodeMetrics?.cacheHitRate || 0) * 100)}%
 
 ${result.trends?.length > 0 ? `**Performance Trends**:
 ${result.trends.map((trend) => `- **${trend.metric}**: ${trend.direction} (${trend.change}%)`).join('\n')}
@@ -75,132 +81,135 @@ ${result.trends.map((trend) => `- **${trend.metric}**: ${trend.direction} (${tre
         return response;
     });
 }
-function analyzeToolPerformance(timeRange) {
+async function analyzeClaudeCodePerformance(timeRange) {
+    const metrics = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getPerformanceMetrics(timeRange);
+    const modelStats = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getModelUsageStats(timeRange);
+    const alerts = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getAlerts();
     return {
         timestamp: new Date().toISOString(),
         timeRange,
+        claudeCodeMetrics: metrics,
+        modelStats,
         toolMetrics: {
-            totalExecutions: 145,
-            averageExecutionTime: 85,
-            slowestTool: 'parallel_optimizer',
-            fastestTool: 'code_generate',
-            errorRate: 0.02,
-            throughput: 12
+            totalExecutions: metrics.totalRequests,
+            averageExecutionTime: Math.round(metrics.averageResponseTime),
+            slowestModel: modelStats.opus.averageTime > modelStats.sonnet.averageTime ? 'opus' : 'sonnet',
+            fastestModel: modelStats.opus.averageTime < modelStats.sonnet.averageTime ? 'opus' : 'sonnet',
+            errorRate: metrics.errorRate,
+            throughput: Math.round(metrics.totalRequests / timeRange)
         },
         topPerformers: [
-            { name: 'code_generate', avgTime: 45, executions: 25 },
-            { name: 'query_project', avgTime: 60, executions: 18 }
+            { name: 'sonnet', avgTime: Math.round(modelStats.sonnet.averageTime), executions: modelStats.sonnet.requests },
+            { name: 'opus', avgTime: Math.round(modelStats.opus.averageTime), executions: modelStats.opus.requests }
         ],
-        bottlenecks: [],
-        healthScore: 0.88,
+        bottlenecks: alerts.filter(a => a.type === 'warning' || a.type === 'error'),
+        healthScore: Math.max(0.3, metrics.successRate - (metrics.errorRate * 2)),
         insights: [
-            'Total tool executions: 145',
-            'Average execution time: 85ms',
-            'Error rate: 2%',
-            'Throughput: 12 ops/min'
+            `Total Claude Code requests: ${metrics.totalRequests}`,
+            `Average response time: ${Math.round(metrics.averageResponseTime)}ms`,
+            `Success rate: ${Math.round(metrics.successRate * 100)}%`,
+            `Cache hit rate: ${Math.round(metrics.cacheHitRate * 100)}%`
         ],
-        recommendations: [
-            'Consider optimizing parallel_optimizer performance',
-            'Monitor error rates for anomalies'
-        ],
-        alerts: []
+        recommendations: await claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getPerformanceRecommendations(),
+        alerts: alerts.slice(0, 5) // Latest 5 alerts
     };
 }
-function analyzeOverallPerformance(timeRange, stateManager) {
+async function analyzeOverallPerformance(timeRange, stateManager) {
     const projectState = stateManager.getState();
+    const claudeMetrics = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getPerformanceMetrics(timeRange);
+    const trendAnalysis = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getTrendAnalysis(timeRange);
     return {
         timestamp: new Date().toISOString(),
         timeRange,
+        claudeCodeMetrics: claudeMetrics,
         systemMetrics: {
-            cpuUsage: 0.45,
-            memoryUsage: 0.62,
-            diskIO: 15,
-            networkIO: 8,
-            uptime: 72,
-            responseTime: 95
+            claudeCodeUsage: claudeMetrics.totalRequests,
+            averageResponseTime: Math.round(claudeMetrics.averageResponseTime),
+            successRate: Math.round(claudeMetrics.successRate * 100),
+            cacheEfficiency: Math.round(claudeMetrics.cacheHitRate * 100),
+            uptime: timeRange,
+            responseTime: Math.round(claudeMetrics.averageResponseTime)
         },
         projectMetrics: {
             activeTasks: projectState.tasks.size,
             completedTasks: projectState.metadata.completedTasks,
             activeTeams: Array.from(projectState.metadata.teamUtilization.values()).filter((util) => util > 0).length,
-            systemLoad: 0.45
+            systemLoad: Math.min(1.0, claudeMetrics.totalRequests / (timeRange * 10)) // Rough load calculation
         },
-        healthScore: 0.85,
+        healthScore: Math.max(0.3, claudeMetrics.successRate - (claudeMetrics.errorRate * 2)),
         insights: [
-            'CPU Usage: 45%',
-            'Memory Usage: 62%',
-            'System Response Time: 95ms',
-            `Active Tasks: ${projectState.tasks.size}`
+            `Claude Code Usage: ${claudeMetrics.totalRequests} requests`,
+            `Success Rate: ${Math.round(claudeMetrics.successRate * 100)}%`,
+            `Average Response Time: ${Math.round(claudeMetrics.averageResponseTime)}ms`,
+            `Active Tasks: ${projectState.tasks.size}`,
+            `Performance Trend: ${trendAnalysis.trend} (${Math.round(trendAnalysis.confidence * 100)}% confidence)`
         ],
-        recommendations: [
-            'System performance is optimal',
-            'Memory usage is within acceptable range'
-        ],
-        alerts: [],
-        trends: []
+        recommendations: await claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getPerformanceRecommendations(),
+        alerts: claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getAlerts().slice(0, 3),
+        trends: [trendAnalysis]
     };
 }
-function analyzeTrends(timeRange) {
+async function analyzeClaudeCodeTrends(timeRange) {
+    const trendAnalysis = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getTrendAnalysis(timeRange);
+    const metrics = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getPerformanceMetrics(timeRange);
+    const modelStats = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getModelUsageStats(timeRange);
     return {
         timestamp: new Date().toISOString(),
         timeRange,
+        claudeCodeMetrics: metrics,
         trends: [
-            { metric: 'response_time', direction: 'stable', change: 0 },
-            { metric: 'throughput', direction: 'improving', change: 5 }
+            { metric: 'success_rate', direction: trendAnalysis.trend, change: Math.round(metrics.successRate * 100) },
+            { metric: 'response_time', direction: metrics.averageResponseTime < 15000 ? 'improving' : 'degrading', change: Math.round((metrics.averageResponseTime - 10000) / 100) }
         ],
         patterns: [
-            { description: 'Peak usage during morning hours', confidence: 0.8 }
+            { description: `${trendAnalysis.details}`, confidence: trendAnalysis.confidence }
         ],
-        anomalies: [],
+        anomalies: claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getAlerts('error'),
         predictions: [
-            { metric: 'load', prediction: 'stable', confidence: 0.85 }
+            { metric: 'performance', prediction: trendAnalysis.trend, confidence: trendAnalysis.confidence }
         ],
-        healthScore: 0.87,
+        healthScore: Math.max(0.3, metrics.successRate - (metrics.errorRate * 2)),
         insights: [
-            '2 performance trends identified',
-            '0 anomalies detected',
-            'Overall trend: Stable',
-            'Prediction confidence: 85%'
+            `Performance trend: ${trendAnalysis.trend}`,
+            `Confidence level: ${Math.round(trendAnalysis.confidence * 100)}%`,
+            `Total requests analyzed: ${metrics.totalRequests}`,
+            `Current success rate: ${Math.round(metrics.successRate * 100)}%`
         ],
-        recommendations: [
-            'Current trends indicate stable performance',
-            'Continue monitoring for anomalies'
-        ],
-        alerts: []
+        recommendations: await claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getPerformanceRecommendations(),
+        alerts: claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getAlerts().slice(0, 3)
     };
 }
-function generateRecommendations(timeRange) {
+async function generateClaudeCodeRecommendations(timeRange) {
+    const metrics = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getPerformanceMetrics(timeRange);
+    const recommendations = await claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getPerformanceRecommendations();
+    const alerts = claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.getAlerts();
+    const immediateActions = alerts.filter(a => a.type === 'error').map(a => a.suggestions).flat();
+    const shortTermActions = alerts.filter(a => a.type === 'warning').map(a => a.suggestions).flat();
     return {
         timestamp: new Date().toISOString(),
         timeRange,
+        claudeCodeMetrics: metrics,
         categories: {
-            immediate: [],
-            shortTerm: ['Monitor memory usage trends'],
-            longTerm: ['Consider scaling infrastructure for growth'],
-            preventive: ['Schedule regular performance reviews']
+            immediate: immediateActions,
+            shortTerm: shortTermActions.length > 0 ? shortTermActions : ['Monitor Claude Code performance regularly'],
+            longTerm: ['Optimize prompt strategies for better performance', 'Consider model usage patterns for cost optimization'],
+            preventive: ['Set up automated performance alerts', 'Schedule weekly Claude Code performance reviews']
         },
-        priorityRecommendations: [
-            'Continue current monitoring practices',
-            'Review performance weekly'
-        ],
+        priorityRecommendations: recommendations.slice(0, 3),
         estimatedImpact: {
-            performanceGain: 0.1,
-            resourceSavings: 0.05,
-            costReduction: 0.02
+            performanceGain: metrics.successRate < 0.9 ? 0.15 : 0.05,
+            resourceSavings: metrics.cacheHitRate < 0.5 ? 0.2 : 0.05,
+            costReduction: metrics.totalRequests > 100 ? 0.1 : 0.02
         },
-        healthScore: 0.85,
+        healthScore: Math.max(0.3, metrics.successRate - (metrics.errorRate * 2)),
         insights: [
-            '0 immediate actions recommended',
-            '1 short-term improvements identified',
-            '1 long-term optimizations suggested',
-            'Estimated performance gain: 10%'
+            `${immediateActions.length} immediate actions recommended`,
+            `${shortTermActions.length} short-term improvements identified`,
+            `Claude Code success rate: ${Math.round(metrics.successRate * 100)}%`,
+            `Estimated optimization potential: ${metrics.successRate < 0.9 ? 'High' : 'Low'}`
         ],
-        recommendations: [
-            'Monitor memory usage trends',
-            'Consider scaling infrastructure for growth',
-            'Schedule regular performance reviews'
-        ],
-        alerts: []
+        recommendations,
+        alerts: alerts.slice(0, 5)
     };
 }
 function formatPerformanceResult(metric, result) {

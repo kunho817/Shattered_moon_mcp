@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.dynamicTeamExpander = void 0;
 const index_js_1 = require("../types/index.js");
 const common_js_1 = require("../utils/common.js");
+const claudeCodeInvoker_js_1 = require("../utils/claudeCodeInvoker.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 exports.dynamicTeamExpander = (0, common_js_1.withServices)('dynamicTeamExpander', async (services, params) => {
     const { stateManager, performanceMonitor, aiEngine } = services;
@@ -21,14 +22,54 @@ exports.dynamicTeamExpander = (0, common_js_1.withServices)('dynamicTeamExpander
                 const invalidSpecs = specialists.filter(spec => !(spec in index_js_1.SPECIALISTS));
                 logger_js_1.default.warn('Invalid specialists detected', { invalidSpecs });
             }
-            // Enhanced AI-powered expansion analysis based on context
-            const contextAnalysis = analyzeExpansionContext(context, validSpecialists);
-            const expansion = {
-                urgency: contextAnalysis.urgency,
-                teamFit: contextAnalysis.teamFit,
-                efficiency: contextAnalysis.efficiency,
-                contextScore: contextAnalysis.contextScore
-            };
+            // Claude Code-powered expansion analysis
+            const expansionPrompt = `Analyze team expansion requirements:
+
+Context: "${context}"
+Requested Specialists: ${validSpecialists.join(', ')}
+Duration: ${duration || 60} minutes
+
+Analyze and provide:
+1. Urgency level (low/normal/high/critical)
+2. Team fit score (0-1) - how well specialists match context
+3. Resource efficiency (0-1) - optimal resource usage
+4. Context match score (0-1) - alignment with task requirements
+5. Risk factors (array)
+6. Optimization suggestions (array)
+
+Respond in JSON format with keys: urgency, teamFit, efficiency, contextScore, riskFactors, optimizations`;
+            const expansionResponse = await claudeCodeInvoker_js_1.claudeCodeInvoker.invokeAuto(expansionPrompt, `Team expansion analysis for: ${context}`, { timeout: 15000 });
+            let expansion;
+            if (expansionResponse.success) {
+                try {
+                    expansion = JSON.parse(expansionResponse.output);
+                    logger_js_1.default.info('Claude Code expansion analysis completed', { expansion });
+                }
+                catch (parseError) {
+                    logger_js_1.default.warn('Failed to parse expansion response, using fallback');
+                    const contextAnalysis = analyzeExpansionContext(context, validSpecialists);
+                    expansion = {
+                        urgency: contextAnalysis.urgency,
+                        teamFit: contextAnalysis.teamFit,
+                        efficiency: contextAnalysis.efficiency,
+                        contextScore: contextAnalysis.contextScore,
+                        riskFactors: ['Analysis parsing failed'],
+                        optimizations: ['Manual analysis required']
+                    };
+                }
+            }
+            else {
+                logger_js_1.default.error('Claude Code expansion analysis failed, using fallback', { error: expansionResponse.error });
+                const contextAnalysis = analyzeExpansionContext(context, validSpecialists);
+                expansion = {
+                    urgency: contextAnalysis.urgency,
+                    teamFit: contextAnalysis.teamFit,
+                    efficiency: contextAnalysis.efficiency,
+                    contextScore: contextAnalysis.contextScore,
+                    riskFactors: ['AI analysis system unavailable'],
+                    optimizations: ['Use basic specialist allocation']
+                };
+            }
             // Real specialist conflict detection and resource assessment
             for (const specialistType of validSpecialists) {
                 const specialist = index_js_1.SPECIALISTS[specialistType];
@@ -75,10 +116,79 @@ exports.dynamicTeamExpander = (0, common_js_1.withServices)('dynamicTeamExpander
                     });
                 }
             }
-            // Enhanced AI recommendations for team composition
-            const teamOptimization = generateTeamOptimization(activatedSpecialists, conflicts, context, validSpecialists);
-            // Enhanced team performance prediction based on real data
-            const performance = predictTeamPerformance(activatedSpecialists, conflicts, expansion, duration || 60);
+            // Claude Code-powered team optimization
+            const optimizationPrompt = `Optimize team composition based on results:
+
+Activated Specialists:
+${activatedSpecialists.map(s => `- ${s.type}: ${Math.round(s.performanceScore * 100)}% performance, ${s.estimatedCapacity}% capacity`).join('\n')}
+
+Conflicts:
+${conflicts.map(c => `- ${c.specialist}: ${c.issue} (${c.severity})`).join('\n')}
+
+Context: "${context}"
+Requested: ${validSpecialists.join(', ')}
+
+Provide optimization:
+1. Specific recommendations (array)
+2. Suggested additional specialists (array)
+3. Priority adjustments needed
+4. Alternative approaches
+
+Respond in JSON format with keys: recommendations, suggestedAdditions, priorityAdjustments, alternatives`;
+            const optimizationResponse = await claudeCodeInvoker_js_1.claudeCodeInvoker.invokePlanning(optimizationPrompt, { timeout: 20000 });
+            let teamOptimization;
+            if (optimizationResponse.success) {
+                try {
+                    teamOptimization = JSON.parse(optimizationResponse.output);
+                    logger_js_1.default.info('Claude Code team optimization completed', { teamOptimization });
+                }
+                catch (parseError) {
+                    logger_js_1.default.warn('Failed to parse optimization response, using fallback');
+                    teamOptimization = generateTeamOptimization(activatedSpecialists, conflicts, context, validSpecialists);
+                }
+            }
+            else {
+                logger_js_1.default.error('Claude Code optimization failed, using fallback', { error: optimizationResponse.error });
+                teamOptimization = generateTeamOptimization(activatedSpecialists, conflicts, context, validSpecialists);
+            }
+            // Claude Code-powered performance prediction
+            const performancePrompt = `Predict team performance for expanded team:
+
+Team Composition:
+${activatedSpecialists.map(s => `- ${s.type}: ${Math.round(s.performanceScore * 100)}% performance, ${Math.round(s.contextMatch * 100)}% context match`).join('\n')}
+
+Conflicts: ${conflicts.length}
+Duration: ${duration || 60} minutes
+Context: "${context}"
+Efficiency: ${Math.round(expansion.efficiency * 100)}%
+
+Predict:
+1. Success probability (0-1)
+2. Productivity boost factor (1.0+ means improvement)
+3. Quality score (0-1)
+4. Time improvement estimate
+5. Risk assessment
+
+Respond in JSON format with keys: successRate, productivityBoost, qualityScore, timeImprovement, riskAssessment`;
+            const performanceResponse = await claudeCodeInvoker_js_1.claudeCodeInvoker.invokeExecution(performancePrompt, { timeout: 10000 });
+            let performance;
+            if (performanceResponse.success) {
+                try {
+                    performance = JSON.parse(performanceResponse.output);
+                    // Add estimated completion time
+                    const improvementPercent = Math.round((performance.productivityBoost - 1) * 100);
+                    performance.estimatedCompletion = `Improved by ${improvementPercent}% (${Math.round((duration || 60) / performance.productivityBoost)} min estimated)`;
+                    logger_js_1.default.info('Claude Code performance prediction completed', { performance });
+                }
+                catch (parseError) {
+                    logger_js_1.default.warn('Failed to parse performance response, using fallback');
+                    performance = predictTeamPerformance(activatedSpecialists, conflicts, expansion, duration || 60);
+                }
+            }
+            else {
+                logger_js_1.default.error('Claude Code performance prediction failed, using fallback', { error: performanceResponse.error });
+                performance = predictTeamPerformance(activatedSpecialists, conflicts, expansion, duration || 60);
+            }
             // Record expansion pattern for learning with enhanced data
             aiEngine.recordTaskPattern({
                 type: 'team_expansion',
@@ -99,11 +209,12 @@ exports.dynamicTeamExpander = (0, common_js_1.withServices)('dynamicTeamExpander
 - **Context**: ${context}
 - **Duration**: ${duration || 60} minutes
 
-**AI Expansion Analysis**:
+**Claude Code Expansion Analysis**:
 - **Urgency Level**: ${expansion.urgency}
 - **Team Fit Score**: ${Math.round(expansion.teamFit * 100)}%
 - **Resource Efficiency**: ${Math.round(expansion.efficiency * 100)}%
 - **Context Match**: ${Math.round(expansion.contextScore * 100)}%
+${expansion.riskFactors?.length > 0 ? `- **Risk Factors**: ${expansion.riskFactors.join(', ')}` : ''}
 
 ${activatedSpecialists.length > 0 ? `**✅ Successfully Activated Specialists (${activatedSpecialists.length})**:
 ${activatedSpecialists.map(s => `- **${s.type}** (\`${s.id}\`)
@@ -125,8 +236,14 @@ ${conflicts.map((c) => {
 - **Quality Score**: ${Math.round(performance.qualityScore * 100)}%
 - **Estimated Completion**: ${performance.estimatedCompletion}
 
-**🎯 AI Team Optimization**:
+**🎯 Claude Code Team Optimization**:
 ${teamOptimization.recommendations.map((r) => `- ${r}`).join('\n')}
+
+${teamOptimization.priorityAdjustments ? `**Priority Adjustments**:
+${teamOptimization.priorityAdjustments.map((p) => `- ${p}`).join('\n')}` : ''}
+
+${teamOptimization.alternatives ? `**Alternative Approaches**:
+${teamOptimization.alternatives.map((a) => `- ${a}`).join('\n')}` : ''}
 
 ${teamOptimization.suggestedAdditions.length > 0 ? `
 **💡 Suggested Additional Specialists**:

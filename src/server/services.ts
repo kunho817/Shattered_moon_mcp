@@ -4,6 +4,7 @@ import { PerformanceMonitor } from '../utils/performance.js';
 import { AILearningEngine } from '../utils/ai.js';
 import { SessionManager } from '../session/manager.js';
 import { StateManager } from '../session/state.js';
+import { LearningIntegration, initializeLearningIntegration } from '../services/LearningIntegration.js';
 
 export interface Services {
   stateManager: ProjectStateManager;
@@ -11,6 +12,7 @@ export interface Services {
   aiEngine: AILearningEngine;
   sessionManager: SessionManager;
   globalStateManager: StateManager;
+  learningIntegration: LearningIntegration;
 }
 
 let services: Services | null = null;
@@ -48,12 +50,16 @@ export async function initializeServices(): Promise<Services> {
     globalStateManager.createNamespace('user_preferences', { persistent: true });
     globalStateManager.createNamespace('temp', { persistent: false, defaultTTL: 300000 }); // 5 minutes TTL
 
+    // Initialize learning integration
+    const learningIntegration = initializeLearningIntegration(performanceMonitor);
+
     services = {
       stateManager,
       performanceMonitor,
       aiEngine,
       sessionManager,
-      globalStateManager
+      globalStateManager,
+      learningIntegration
     };
 
     logger.info('Services initialized successfully');

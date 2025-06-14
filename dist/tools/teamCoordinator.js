@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.teamCoordinator = void 0;
 const common_js_1 = require("../utils/common.js");
+const claudeCodeInvoker_js_1 = require("../utils/claudeCodeInvoker.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 exports.teamCoordinator = (0, common_js_1.withServices)('teamCoordinator', async (services, params) => {
     const { stateManager, performanceMonitor, aiEngine } = services;
@@ -21,21 +22,62 @@ exports.teamCoordinator = (0, common_js_1.withServices)('teamCoordinator', async
             }
             // Real conflict detection instead of random
             const conflicts = (0, common_js_1.detectTeamConflicts)(services, validTeams);
-            // Enhanced AI-powered coordination analysis
+            // Calculate team utilizations
             const teamUtilizations = validTeams.map(team => ({
                 team,
                 utilization: (0, common_js_1.calculateTeamUtilization)(services, team)
             }));
             const avgUtilization = teamUtilizations.reduce((sum, t) => sum + t.utilization, 0) / teamUtilizations.length;
             const maxUtilization = Math.max(...teamUtilizations.map(t => t.utilization));
-            const coordination = {
-                complexity: maxUtilization > 0.8 ? 'high' : avgUtilization > 0.6 ? 'medium' : 'low',
-                issues: conflicts,
-                priority: conflicts.some(c => c.severity === 'high') ? 'high' : 'normal',
-                efficiency: Math.max(0.4, 1 - (conflicts.length * 0.1) - (maxUtilization * 0.2)),
-                nextAction: conflicts.length > 0 ? 'Resolve team conflicts' : 'Continue monitoring team progress',
-                recommendations: generateCoordinationRecommendations(teamUtilizations, conflicts)
-            };
+            // Claude Code-powered coordination analysis
+            const coordinationPrompt = `Analyze team coordination situation for ${action} action:
+
+Teams: ${validTeams.join(', ')}
+Conflicts: ${conflicts.length} detected
+Average Utilization: ${Math.round(avgUtilization * 100)}%
+Max Utilization: ${Math.round(maxUtilization * 100)}%
+Action Type: ${action}
+Data: ${JSON.stringify(data).substring(0, 200)}
+
+Provide coordination analysis:
+1. Complexity level (low/medium/high/critical)
+2. Priority (low/normal/high/critical)
+3. Efficiency score (0-1)
+4. Next recommended action
+5. Specific recommendations (array)
+
+Respond in JSON format with keys: complexity, priority, efficiency, nextAction, recommendations`;
+            const coordinationResponse = await claudeCodeInvoker_js_1.claudeCodeInvoker.invokeAuto(coordinationPrompt, `Team coordination analysis for ${action} with ${validTeams.length} teams`, { timeout: 15000 });
+            let coordination;
+            if (coordinationResponse.success) {
+                try {
+                    coordination = JSON.parse(coordinationResponse.output);
+                    coordination.issues = conflicts; // Add detected conflicts
+                    logger_js_1.default.info('Claude Code coordination analysis completed', { coordination });
+                }
+                catch (parseError) {
+                    logger_js_1.default.warn('Failed to parse coordination response, using fallback');
+                    coordination = {
+                        complexity: maxUtilization > 0.8 ? 'high' : avgUtilization > 0.6 ? 'medium' : 'low',
+                        issues: conflicts,
+                        priority: conflicts.some(c => c.severity === 'high') ? 'high' : 'normal',
+                        efficiency: Math.max(0.4, 1 - (conflicts.length * 0.1) - (maxUtilization * 0.2)),
+                        nextAction: conflicts.length > 0 ? 'Resolve team conflicts' : 'Continue monitoring team progress',
+                        recommendations: ['Manual coordination analysis required']
+                    };
+                }
+            }
+            else {
+                logger_js_1.default.error('Claude Code coordination analysis failed, using fallback', { error: coordinationResponse.error });
+                coordination = {
+                    complexity: maxUtilization > 0.8 ? 'high' : avgUtilization > 0.6 ? 'medium' : 'low',
+                    issues: conflicts,
+                    priority: conflicts.some(c => c.severity === 'high') ? 'high' : 'normal',
+                    efficiency: Math.max(0.4, 1 - (conflicts.length * 0.1) - (maxUtilization * 0.2)),
+                    nextAction: conflicts.length > 0 ? 'Resolve team conflicts' : 'Continue monitoring team progress',
+                    recommendations: ['Coordination system unavailable - manual review needed']
+                };
+            }
             switch (action) {
                 case 'share':
                     for (const teamName of validTeams) {
@@ -52,18 +94,76 @@ exports.teamCoordinator = (0, common_js_1.withServices)('teamCoordinator', async
                     }
                     break;
                 case 'sync':
-                    // Real team synchronization with conflict resolution
+                    // Claude Code-powered conflict resolution
                     if (conflicts.length > 0) {
-                        for (const conflict of conflicts) {
-                            const resolutionStrategy = determineResolutionStrategy(conflict);
-                            results.push({
-                                conflict: conflict.id,
-                                status: 'detected',
-                                severity: conflict.severity,
-                                description: conflict.description,
-                                strategy: resolutionStrategy,
-                                affectedTeams: conflict.teams
-                            });
+                        const resolutionPrompt = `Develop conflict resolution strategies for team synchronization:
+
+Conflicts:
+${conflicts.map(c => `- ${c.severity}: ${c.description} (Teams: ${c.teams.join(', ')})`).join('\n')}
+
+Team Utilizations:
+${teamUtilizations.map(t => `- ${t.team}: ${Math.round(t.utilization * 100)}%`).join('\n')}
+
+Provide resolution strategies:
+1. For each conflict, suggest specific resolution strategy
+2. Priority order for resolution
+3. Estimated resolution time
+4. Risk mitigation steps
+
+Respond in JSON format with array of: {conflictId, strategy, priority, estimatedTime, risks, steps}`;
+                        const resolutionResponse = await claudeCodeInvoker_js_1.claudeCodeInvoker.invokePlanning(resolutionPrompt, { timeout: 20000 });
+                        if (resolutionResponse.success) {
+                            try {
+                                const resolutionStrategies = JSON.parse(resolutionResponse.output);
+                                conflicts.forEach((conflict, index) => {
+                                    const strategy = resolutionStrategies[index] || {
+                                        strategy: 'manual_intervention_required',
+                                        priority: conflict.severity,
+                                        estimatedTime: '15-30 minutes',
+                                        risks: ['Unresolved conflict may impact team efficiency'],
+                                        steps: ['Assign conflict resolution specialist', 'Schedule team review']
+                                    };
+                                    results.push({
+                                        conflict: conflict.id,
+                                        status: 'resolution_planned',
+                                        severity: conflict.severity,
+                                        description: conflict.description,
+                                        strategy: strategy.strategy,
+                                        affectedTeams: conflict.teams,
+                                        resolutionSteps: strategy.steps,
+                                        estimatedTime: strategy.estimatedTime,
+                                        risks: strategy.risks
+                                    });
+                                });
+                            }
+                            catch (parseError) {
+                                logger_js_1.default.warn('Failed to parse resolution strategies, using fallback');
+                                for (const conflict of conflicts) {
+                                    const resolutionStrategy = determineResolutionStrategy(conflict);
+                                    results.push({
+                                        conflict: conflict.id,
+                                        status: 'detected',
+                                        severity: conflict.severity,
+                                        description: conflict.description,
+                                        strategy: resolutionStrategy,
+                                        affectedTeams: conflict.teams
+                                    });
+                                }
+                            }
+                        }
+                        else {
+                            logger_js_1.default.error('Claude Code resolution failed, using basic strategies');
+                            for (const conflict of conflicts) {
+                                const resolutionStrategy = determineResolutionStrategy(conflict);
+                                results.push({
+                                    conflict: conflict.id,
+                                    status: 'detected',
+                                    severity: conflict.severity,
+                                    description: conflict.description,
+                                    strategy: resolutionStrategy,
+                                    affectedTeams: conflict.teams
+                                });
+                            }
                         }
                     }
                     else {
@@ -138,7 +238,7 @@ exports.teamCoordinator = (0, common_js_1.withServices)('teamCoordinator', async
 **Teams Processed**: ${validTeams.length}${teams.length !== validTeams.length ? `/${teams.length} (${teams.length - validTeams.length} invalid)` : ''}
 **Success Rate**: ${Math.round((successCount / Math.max(results.length, 1)) * 100)}%
 
-**AI Coordination Analysis**:
+**Claude Code Coordination Analysis**:
 - **Complexity**: ${coordination.complexity}
 - **Conflicts Detected**: ${conflicts.length}
 - **Overall Efficiency**: ${Math.round(coordination.efficiency * 100)}%
@@ -170,7 +270,7 @@ ${results.map(r => {
 
 **Next Recommended Action**: ${coordination.nextAction}
 
-${coordination.recommendations?.length > 0 ? `**AI Recommendations**:
+${coordination.recommendations?.length > 0 ? `**Claude Code Recommendations**:
 ${coordination.recommendations.map(r => `- ${r}`).join('\n')}
 
 ` : ''}**Summary**: Team coordination ${conflicts.length > 0 ? 'completed with conflicts requiring attention' : 'completed successfully'} with ${Math.round(coordination.efficiency * 100)}% efficiency.`

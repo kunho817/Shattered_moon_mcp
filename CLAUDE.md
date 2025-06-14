@@ -10,6 +10,13 @@ This is the **TypeScript implementation** of Shattered Moon MCP (Model Context P
 
 ## Recent Development Updates
 
+### 🚀 Claude Code Integration (Latest)
+- **Major Architecture Shift**: Migrated from internal AI to Claude Code bash integration
+- **Intelligent Model Selection**: Opus for planning, Sonnet for execution
+- **Advanced Performance Monitoring**: Real-time Claude Code usage analytics
+- **Enhanced Accuracy**: Target 95%+ vs previous 87.99% internal AI accuracy
+
+### Previous Updates
 - Completed comprehensive TypeScript implementation
 - Enhanced MCP server architecture with dual transport support
 - Implemented advanced tool configuration and security layers
@@ -84,9 +91,24 @@ All 9 tools follow consistent patterns in `src/tools/`:
 
 1. **Zod Schema Validation**: Defined in `src/types/index.ts`
 2. **Service Integration**: Access shared services via `getServices()`
-3. **Performance Monitoring**: Wrapped execution with metrics
-4. **Error Handling**: Standardized error responses with suggestions
-5. **AI Learning**: Pattern recording for optimization
+3. **Claude Code Integration**: External AI via bash calls with model selection
+4. **Performance Monitoring**: Wrapped execution with metrics + Claude Code monitoring
+5. **Error Handling**: Standardized error responses with suggestions
+6. **AI Learning**: Pattern recording for optimization
+
+### Claude Code Integration Architecture
+
+**Key Tools Enhanced**:
+- `distributedTaskManager`: Opus for task analysis, Sonnet for predictions
+- `teamCoordinator`: Opus for conflict resolution, Sonnet for coordination
+- `dynamicTeamExpander`: Auto model selection based on task complexity
+- `performanceMetrics`: Real-time Claude Code performance analytics
+
+**Performance Features**:
+- Automatic model selection (planning tasks → Opus, execution → Sonnet)
+- Response caching with 5-minute TTL
+- Real-time performance monitoring and alerting
+- Comprehensive usage analytics and recommendations
 
 ### GitHub Manager Enhanced Features
 

@@ -1,0 +1,381 @@
+[
+  {
+    "taskId": "basic_001",
+    "description": "Fix a typo in README.md file",
+    "startTime": "2025-06-13T07:59:14.232048",
+    "expectedComplexity": "low",
+    "expectedDuration": 5,
+    "expectedTeams": [
+      "Documentation"
+    ],
+    "endTime": "2025-06-13T07:59:14.232141",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Documentation"
+    ],
+    "actualDuration": 3.9,
+    "executionTime": 0.00010657310485839844,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.78,
+      "overall": 0.9266666666666667
+    },
+    "success": true,
+    "iteration": 1
+  },
+  {
+    "taskId": "basic_002",
+    "description": "Add a simple console.log statement for debugging",
+    "startTime": "2025-06-13T07:59:14.732344",
+    "expectedComplexity": "low",
+    "expectedDuration": 3,
+    "expectedTeams": [
+      "Backend"
+    ],
+    "endTime": "2025-06-13T07:59:14.732408",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Backend"
+    ],
+    "actualDuration": 2.7,
+    "executionTime": 7.319450378417969e-05,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.9,
+      "overall": 0.9666666666666667
+    },
+    "success": true,
+    "iteration": 1
+  },
+  {
+    "taskId": "basic_003",
+    "description": "Update package version number",
+    "startTime": "2025-06-13T07:59:15.232635",
+    "expectedComplexity": "low",
+    "expectedDuration": 2,
+    "expectedTeams": [
+      "DevOps"
+    ],
+    "endTime": "2025-06-13T07:59:15.232691",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "DevOps"
+    ],
+    "actualDuration": 2.2,
+    "executionTime": 6.413459777832031e-05,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.8999999999999999,
+      "overall": 0.9666666666666667
+    },
+    "success": true,
+    "iteration": 1
+  },
+  {
+    "taskId": "basic_004",
+    "description": "Create a new empty test file",
+    "startTime": "2025-06-13T07:59:15.732909",
+    "expectedComplexity": "low",
+    "expectedDuration": 5,
+    "expectedTeams": [
+      "Testing"
+    ],
+    "endTime": "2025-06-13T07:59:15.733019",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Testing",
+      "Performance"
+    ],
+    "actualDuration": 3.6,
+    "executionTime": 0.00011968612670898438,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.72,
+      "overall": 0.9066666666666666
+    },
+    "success": true,
+    "iteration": 1
+  },
+  {
+    "taskId": "basic_005",
+    "description": "Add a comment to explain a function",
+    "startTime": "2025-06-13T07:59:16.233239",
+    "expectedComplexity": "low",
+    "expectedDuration": 4,
+    "expectedTeams": [
+      "Documentation"
+    ],
+    "endTime": "2025-06-13T07:59:16.233297",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Documentation"
+    ],
+    "actualDuration": 4.0,
+    "executionTime": 7.534027099609375e-05,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 1.0,
+      "overall": 1.0
+    },
+    "success": true,
+    "iteration": 1
+  },
+  {
+    "taskId": "basic_001",
+    "description": "Fix a typo in README.md file",
+    "startTime": "2025-06-13T07:59:16.733558",
+    "expectedComplexity": "low",
+    "expectedDuration": 5,
+    "expectedTeams": [
+      "Documentation"
+    ],
+    "endTime": "2025-06-13T07:59:16.733629",
+    "actualComplexity": "high",
+    "actualTeams": [
+      "Documentation",
+      "DevOps"
+    ],
+    "actualDuration": 6.2,
+    "executionTime": 7.963180541992188e-05,
+    "accuracy": {
+      "complexity": false,
+      "teams": 1.0,
+      "duration": 0.76,
+      "overall": 0.5866666666666667
+    },
+    "success": false,
+    "iteration": 2
+  },
+  {
+    "taskId": "basic_002",
+    "description": "Add a simple console.log statement for debugging",
+    "startTime": "2025-06-13T07:59:17.233826",
+    "expectedComplexity": "low",
+    "expectedDuration": 3,
+    "expectedTeams": [
+      "Backend"
+    ],
+    "endTime": "2025-06-13T07:59:17.233887",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Backend"
+    ],
+    "actualDuration": 2.4,
+    "executionTime": 6.937980651855469e-05,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.7999999999999999,
+      "overall": 0.9333333333333332
+    },
+    "success": true,
+    "iteration": 2
+  },
+  {
+    "taskId": "basic_003",
+    "description": "Update package version number",
+    "startTime": "2025-06-13T07:59:17.734092",
+    "expectedComplexity": "low",
+    "expectedDuration": 2,
+    "expectedTeams": [
+      "DevOps"
+    ],
+    "endTime": "2025-06-13T07:59:17.734151",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "DevOps"
+    ],
+    "actualDuration": 2.1,
+    "executionTime": 6.699562072753906e-05,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.95,
+      "overall": 0.9833333333333334
+    },
+    "success": true,
+    "iteration": 2
+  },
+  {
+    "taskId": "basic_004",
+    "description": "Create a new empty test file",
+    "startTime": "2025-06-13T07:59:18.234353",
+    "expectedComplexity": "low",
+    "expectedDuration": 5,
+    "expectedTeams": [
+      "Testing"
+    ],
+    "endTime": "2025-06-13T07:59:18.234416",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Testing",
+      "Frontend"
+    ],
+    "actualDuration": 4.2,
+    "executionTime": 7.2479248046875e-05,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.8400000000000001,
+      "overall": 0.9466666666666667
+    },
+    "success": true,
+    "iteration": 2
+  },
+  {
+    "taskId": "basic_005",
+    "description": "Add a comment to explain a function",
+    "startTime": "2025-06-13T07:59:18.734645",
+    "expectedComplexity": "low",
+    "expectedDuration": 4,
+    "expectedTeams": [
+      "Documentation"
+    ],
+    "endTime": "2025-06-13T07:59:18.734702",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Documentation"
+    ],
+    "actualDuration": 5.0,
+    "executionTime": 6.437301635742188e-05,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.75,
+      "overall": 0.9166666666666666
+    },
+    "success": true,
+    "iteration": 2
+  },
+  {
+    "taskId": "basic_001",
+    "description": "Fix a typo in README.md file",
+    "startTime": "2025-06-13T07:59:19.234914",
+    "expectedComplexity": "low",
+    "expectedDuration": 5,
+    "expectedTeams": [
+      "Documentation"
+    ],
+    "endTime": "2025-06-13T07:59:19.235025",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Documentation",
+      "Backend"
+    ],
+    "actualDuration": 5.8,
+    "executionTime": 0.00012087821960449219,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.8400000000000001,
+      "overall": 0.9466666666666667
+    },
+    "success": true,
+    "iteration": 3
+  },
+  {
+    "taskId": "basic_002",
+    "description": "Add a simple console.log statement for debugging",
+    "startTime": "2025-06-13T07:59:19.735295",
+    "expectedComplexity": "low",
+    "expectedDuration": 3,
+    "expectedTeams": [
+      "Backend"
+    ],
+    "endTime": "2025-06-13T07:59:19.735414",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Performance"
+    ],
+    "actualDuration": 3.7,
+    "executionTime": 0.00012922286987304688,
+    "accuracy": {
+      "complexity": true,
+      "teams": 0.0,
+      "duration": 0.7666666666666666,
+      "overall": 0.5888888888888889
+    },
+    "success": false,
+    "iteration": 3
+  },
+  {
+    "taskId": "basic_003",
+    "description": "Update package version number",
+    "startTime": "2025-06-13T07:59:20.235618",
+    "expectedComplexity": "low",
+    "expectedDuration": 2,
+    "expectedTeams": [
+      "DevOps"
+    ],
+    "endTime": "2025-06-13T07:59:20.235672",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "DevOps"
+    ],
+    "actualDuration": 2.2,
+    "executionTime": 6.29425048828125e-05,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.8999999999999999,
+      "overall": 0.9666666666666667
+    },
+    "success": true,
+    "iteration": 3
+  },
+  {
+    "taskId": "basic_004",
+    "description": "Create a new empty test file",
+    "startTime": "2025-06-13T07:59:20.735903",
+    "expectedComplexity": "low",
+    "expectedDuration": 5,
+    "expectedTeams": [
+      "Testing"
+    ],
+    "endTime": "2025-06-13T07:59:20.736017",
+    "actualComplexity": "critical",
+    "actualTeams": [
+      "Testing"
+    ],
+    "actualDuration": 4.7,
+    "executionTime": 0.00012421607971191406,
+    "accuracy": {
+      "complexity": false,
+      "teams": 1.0,
+      "duration": 0.9400000000000001,
+      "overall": 0.6466666666666666
+    },
+    "success": false,
+    "iteration": 3
+  },
+  {
+    "taskId": "basic_005",
+    "description": "Add a comment to explain a function",
+    "startTime": "2025-06-13T07:59:21.236182",
+    "expectedComplexity": "low",
+    "expectedDuration": 4,
+    "expectedTeams": [
+      "Documentation"
+    ],
+    "endTime": "2025-06-13T07:59:21.236238",
+    "actualComplexity": "low",
+    "actualTeams": [
+      "Documentation"
+    ],
+    "actualDuration": 5.0,
+    "executionTime": 6.413459777832031e-05,
+    "accuracy": {
+      "complexity": true,
+      "teams": 1.0,
+      "duration": 0.75,
+      "overall": 0.9166666666666666
+    },
+    "success": true,
+    "iteration": 3
+  }
+]

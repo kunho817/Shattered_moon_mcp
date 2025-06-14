@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "learningRate": 0.1,
+  "dataSource": "./data/learning",
+  "patternThreshold": 0.8,
+  "maxPatterns": 1000,
+  "retraining": {
+    "enabled": true,
+    "frequency": "daily",
+    "minSamples": 50
+  },
+  "evaluation": {
+    "accuracyThreshold": 0.85,
+    "confidenceThreshold": 0.7
+  },
+  "lastUpdated": "2025-06-13T09:16:53.679389",
+  "integrationSource": "mcp_learning_lab"
+}
