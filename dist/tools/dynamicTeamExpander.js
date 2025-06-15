@@ -211,17 +211,17 @@ Respond in JSON format with keys: successRate, productivityBoost, qualityScore, 
 
 **Claude Code Expansion Analysis**:
 - **Urgency Level**: ${expansion.urgency}
-- **Team Fit Score**: ${Math.round(expansion.teamFit * 100)}%
-- **Resource Efficiency**: ${Math.round(expansion.efficiency * 100)}%
-- **Context Match**: ${Math.round(expansion.contextScore * 100)}%
+- **Team Fit Score**: ${Math.round((expansion.teamFit || 0.7) * 100)}%
+- **Resource Efficiency**: ${Math.round((expansion.efficiency || 0.75) * 100)}%
+- **Context Match**: ${Math.round((expansion.contextScore || 0.65) * 100)}%
 ${expansion.riskFactors?.length > 0 ? `- **Risk Factors**: ${expansion.riskFactors.join(', ')}` : ''}
 
 ${activatedSpecialists.length > 0 ? `**✅ Successfully Activated Specialists (${activatedSpecialists.length})**:
 ${activatedSpecialists.map(s => `- **${s.type}** (\`${s.id}\`)
     - **Expertise**: ${s.expertise}
     - **Capacity**: ${s.estimatedCapacity}%
-    - **Performance Score**: ${Math.round(s.performanceScore * 100)}%
-    - **Context Match**: ${Math.round(s.contextMatch * 100)}%`).join('\n')}
+    - **Performance Score**: ${Math.round((s.performanceScore || 0.7) * 100)}%
+    - **Context Match**: ${Math.round((s.contextMatch || 0.5) * 100)}%`).join('\n')}
 
 ` : ''}${conflicts.length > 0 ? `**⚠️ Issues & Conflicts (${conflicts.length})**:
 ${conflicts.map((c) => {
@@ -231,10 +231,10 @@ ${conflicts.map((c) => {
                         }).join('\n')}
 
 ` : ''}**📊 Team Performance Prediction**:
-- **Success Probability**: ${Math.round(performance.successRate * 100)}%
-- **Productivity Boost**: ${Math.round(performance.productivityBoost * 100)}%
-- **Quality Score**: ${Math.round(performance.qualityScore * 100)}%
-- **Estimated Completion**: ${performance.estimatedCompletion}
+- **Success Probability**: ${Math.round((performance.successRate || 0.8) * 100)}%
+- **Productivity Boost**: ${Math.round((performance.productivityBoost || 1.0) * 100)}%
+- **Quality Score**: ${Math.round((performance.qualityScore || 0.7) * 100)}%
+- **Estimated Completion**: ${performance.estimatedCompletion || 'Standard timeline expected'}
 
 **🎯 Claude Code Team Optimization**:
 ${teamOptimization.recommendations.map((r) => `- ${r}`).join('\n')}
@@ -283,25 +283,32 @@ function analyzeExpansionContext(context, specialists) {
     const efficiency = Math.max(0.5, 1 - (specialists.length * 0.05) + contextSpecialistMatch);
     return {
         urgency,
-        teamFit,
-        efficiency,
-        contextScore: contextSpecialistMatch
+        teamFit: Math.max(0.1, Math.min(1.0, teamFit)),
+        efficiency: Math.max(0.5, Math.min(1.0, efficiency)),
+        contextScore: Math.max(0.1, Math.min(1.0, contextSpecialistMatch))
     };
 }
 function calculateContextSpecialistMatch(context, specialists) {
+    if (!context || !specialists || specialists.length === 0) {
+        return 0.5; // Default value for invalid inputs
+    }
     const contextLower = context.toLowerCase();
     let matches = 0;
+    let validSpecialists = 0;
     for (const specialist of specialists) {
         const specialistData = index_js_1.SPECIALISTS[specialist];
-        if (specialistData) {
-            const expertiseKeywords = specialistData.expertise.toLowerCase().split(' ');
-            const matchCount = expertiseKeywords.filter(keyword => contextLower.includes(keyword.toLowerCase())).length;
-            if (matchCount > 0) {
-                matches += matchCount / expertiseKeywords.length;
+        if (specialistData && specialistData.expertise) {
+            validSpecialists++;
+            const expertiseKeywords = specialistData.expertise.toLowerCase().split(' ').filter(k => k.length > 2);
+            if (expertiseKeywords.length > 0) {
+                const matchCount = expertiseKeywords.filter(keyword => contextLower.includes(keyword.toLowerCase())).length;
+                if (matchCount > 0) {
+                    matches += matchCount / expertiseKeywords.length;
+                }
             }
         }
     }
-    return Math.min(1.0, matches / specialists.length);
+    return validSpecialists > 0 ? Math.max(0.1, Math.min(1.0, matches / validSpecialists)) : 0.5;
 }
 function assessSpecialistActivation(specialistType, currentLoad, context, contextScore) {
     // Check if specialist can be activated
@@ -377,12 +384,17 @@ function predictTeamPerformance(activatedSpecialists, conflicts, expansion, dura
         return penalty + (c.severity === 'high' ? 0.2 : c.severity === 'medium' ? 0.1 : 0.05);
     }, 0);
     const successRate = Math.max(0.4, Math.min(1.0, baseSuccessRate + activationBonus - conflictPenalty));
-    // Calculate productivity boost
-    const avgPerformance = activatedSpecialists.reduce((sum, s) => sum + s.performanceScore, 0) / Math.max(activatedSpecialists.length, 1);
-    const productivityBoost = 1.0 + (activatedSpecialists.length * 0.15) + (avgPerformance * 0.3);
-    // Calculate quality score
-    const avgContextMatch = activatedSpecialists.reduce((sum, s) => sum + s.contextMatch, 0) / Math.max(activatedSpecialists.length, 1);
-    const qualityScore = Math.max(0.6, 0.7 + (avgContextMatch * 0.2) + (expansion.efficiency * 0.1));
+    // Calculate productivity boost with safety checks
+    const avgPerformance = activatedSpecialists.length > 0
+        ? activatedSpecialists.reduce((sum, s) => sum + (s.performanceScore || 0.7), 0) / activatedSpecialists.length
+        : 0.7;
+    const productivityBoost = Math.max(1.0, 1.0 + (activatedSpecialists.length * 0.15) + (avgPerformance * 0.3));
+    // Calculate quality score with safety checks
+    const avgContextMatch = activatedSpecialists.length > 0
+        ? activatedSpecialists.reduce((sum, s) => sum + (s.contextMatch || 0.5), 0) / activatedSpecialists.length
+        : 0.5;
+    const expansionEfficiency = expansion?.efficiency || 0.7;
+    const qualityScore = Math.max(0.6, 0.7 + (avgContextMatch * 0.2) + (expansionEfficiency * 0.1));
     // Estimate completion improvement
     const improvementPercent = Math.round((productivityBoost - 1) * 100);
     const estimatedCompletion = `Improved by ${improvementPercent}% (${Math.round(duration / productivityBoost)} min estimated)`;
