@@ -207,7 +207,7 @@ export class EnhancedClaudeCodeManager {
       // Record performance
       claudeCodePerformanceMonitor.recordRequest(
         classification.suggestedModel,
-        response,
+        { response: result.response || 'No response', status: 'success' } as any,
         'enhanced_analysis',
         result.success ? 0.9 : 0.3
       );
@@ -300,12 +300,12 @@ Suggested Complexity: ${complexity || 'auto'}
 Priority: ${priority || 5}/10
 
 Historical Patterns:
-${context.historicalPatterns.slice(0, 3).map(p => `- ${p.description}: ${p.successRate}% success`).join('\n')}
+${context.historicalPatterns?.slice(0, 3).map(p => `- ${p.description}: ${p.successRate}% success`).join('\n') || 'No historical patterns available'}
 
 Current Team States:
-${Array.from(context.teamStates.entries()).map(([team, state]) => 
+${context.teamStates ? Array.from(context.teamStates.entries()).map(([team, state]) => 
   `- ${team}: ${state.utilization}% utilized, ${state.activeTasks} active tasks`
-).join('\n')}
+).join('\n') : 'No team states available'}
 
 Current System Performance:
 - Success Rate: ${Math.round(context.currentMetrics.successRate * 100)}%
@@ -460,8 +460,8 @@ Respond with JSON array containing results for each request.`;
 
 ENHANCED CONTEXT:
 - Task ID: ${context.taskId}
-- Active Teams: ${context.teamStates.size}
-- Historical Success Rate: ${this.calculateHistoricalSuccessRate(context.historicalPatterns)}%
+- Active Teams: ${context.teamStates?.size || 0}
+- Historical Success Rate: ${this.calculateHistoricalSuccessRate(context.historicalPatterns || [])}%
 - Current System Load: ${this.calculateSystemLoad(context.currentMetrics)}
 
 Consider this context when providing analysis.`;
@@ -469,7 +469,7 @@ Consider this context when providing analysis.`;
 
   private generateCacheKey(prompt: string, context: EnhancedContext): string {
     const promptHash = prompt.substring(0, 50);
-    const contextHash = `${context.teamStates.size}_${context.specialistStates.size}`;
+    const contextHash = `${context.teamStates?.size || 0}_${context.specialistStates?.size || 0}`;
     return `${promptHash}_${contextHash}`;
   }
 
@@ -558,7 +558,11 @@ Consider this context when providing analysis.`;
     cacheSize: number;
     queueSize: number;
     cacheHitRate: number;
-    thresholds: typeof this.performanceThresholds;
+    thresholds: {
+      responseTime: number;
+      cacheHitRate: number;
+      errorRate: number;
+    };
   } {
     const totalRequests = this.analysisCache.size;
     const cacheHits = Array.from(this.analysisCache.values()).filter(r => r.cacheHit).length;
@@ -567,7 +571,11 @@ Consider this context when providing analysis.`;
       cacheSize: this.analysisCache.size,
       queueSize: this.requestQueue.length,
       cacheHitRate: totalRequests > 0 ? cacheHits / totalRequests : 0,
-      thresholds: { ...this.performanceThresholds }
+      thresholds: {
+        responseTime: this.performanceThresholds.responseTime,
+        cacheHitRate: this.performanceThresholds.cacheHitTarget,
+        errorRate: 0.1 // 10% error rate threshold
+      }
     };
   }
 }

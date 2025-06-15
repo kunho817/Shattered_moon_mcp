@@ -164,10 +164,7 @@ export const distributedTaskManager = withServices(
           const successfulAssignments = assignments.filter(a => a.status === 'assigned');
           const busyTeams = assignments.filter(a => a.status === 'team_busy');
 
-          const response = {
-            content: [{
-              type: "text" as const,
-              text: `✅ **Task Distributed with Enhanced Granular Analysis!**
+          const responseText = `✅ **Task Distributed with Enhanced Granular Analysis!**
 
 **Task Details**:
 - **ID**: \`${taskId}\`
@@ -213,8 +210,16 @@ ${prediction.potentialIssues ? prediction.potentialIssues.map((r: string) => `- 
 - Queue Status: ${enhancedClaudeCodeManager.getStats().queueSize} pending requests
 - System Load: ${enhancedClaudeCodeManager.getStats().cacheSize < 50 ? 'Low' : 'Moderate'}
 
-**Summary**: Task has been broken down into ${subtasks.length} subtasks and distributed across ${successfulAssignments.length} available teams. Progress will be tracked automatically.`
-            }]
+**Summary**: Task has been broken down into ${subtasks.length} subtasks and distributed across ${successfulAssignments.length} available teams. Progress will be tracked automatically.`;
+
+          // MCP-compliant response format
+          const response = {
+            content: [
+              {
+                type: "text",
+                text: responseText
+              }
+            ]
           };
 
           // Task completion tracking

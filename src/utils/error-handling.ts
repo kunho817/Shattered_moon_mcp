@@ -168,7 +168,7 @@ export class AdvancedErrorHandler extends EventEmitter {
     const recoveryResult = await this.attemptRecovery(enhancedError, context);
     if (recoveryResult.success) {
       this.recordSuccess(circuitBreakerKey);
-      return recoveryResult;
+      return recoveryResult as MCPResult<T>;
     }
 
     // If recovery failed and operation provided, attempt retry
@@ -426,7 +426,7 @@ export class AdvancedErrorHandler extends EventEmitter {
       try {
         const result = await operation();
         logger.info(`Retry attempt ${attempt} succeeded`);
-        return { success: true, data: result };
+        return { success: true, data: result as T };
       } catch (retryError) {
         lastError = this.enhanceError(retryError as Error);
         logger.warn(`Retry attempt ${attempt} failed:`, lastError.message);
@@ -646,4 +646,4 @@ export function HandleErrors(config: { retries?: number; fallback?: any } = {}) 
   };
 }
 
-export { ErrorSeverity, ErrorCategory, type EnhancedError, type ErrorHandlerConfig };
+// Types already exported above

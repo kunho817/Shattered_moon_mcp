@@ -34,18 +34,18 @@ declare const StateConfigSchema: z.ZodObject<{
     encryption: z.ZodDefault<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
     namespace: string;
+    encryption: boolean;
     persistent: boolean;
     maxEntries: number;
     compression: boolean;
-    encryption: boolean;
     defaultTTL?: number | undefined;
 }, {
     namespace: string;
+    encryption?: boolean | undefined;
     persistent?: boolean | undefined;
     maxEntries?: number | undefined;
     defaultTTL?: number | undefined;
     compression?: boolean | undefined;
-    encryption?: boolean | undefined;
 }>;
 export type StateEntry = z.infer<typeof StateEntrySchema>;
 export type StateConfig = z.infer<typeof StateConfigSchema>;

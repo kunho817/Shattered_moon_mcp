@@ -135,7 +135,7 @@ Return optimized request with enhancements as JSON:
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, // 복잡한 요구사항 분석에는 Opus 사용
             { timeout: 45000, priority: 'high' });
-            const optimization = JSON.parse(result.response);
+            const optimization = JSON.parse(result.response || '{}');
             // 최적화된 요청 생성
             return {
                 ...request,
@@ -206,7 +206,22 @@ Return optimized request with enhancements as JSON:
         const mainFile = await this.generateMainFile(request, strategy, specialists);
         files.push(mainFile);
         // 지원 파일들 생성 (헤더, 인터페이스 등)
-        const supportingFiles = await this.generateSupportingFiles(request, mainFile);
+        // Convert mainFile to GeneratedCode for supporting files generation
+        const tempGeneratedCode = {
+            id: request.id,
+            request,
+            primaryFile: mainFile,
+            supportingFiles: [],
+            documentation: {},
+            tests: [],
+            analysis: {},
+            alternatives: [],
+            generatedAt: Date.now(),
+            generatorVersion: '2.0.0'
+        };
+        const supportingCodeFiles = await this.generateSupportingFiles(request, tempGeneratedCode);
+        // Extract GeneratedFile from GeneratedCode
+        const supportingFiles = supportingCodeFiles.map(code => code.primaryFile);
         files.push(...supportingFiles);
         return files;
     }
@@ -214,11 +229,15 @@ Return optimized request with enhancements as JSON:
      * 메인 파일 생성
      */
     async generateMainFile(request, strategy, specialists) {
-        const modelChoice = this.selectAIModel(strategy.aiModel, request.context.performanceCritical);
+        const modelChoice = this.selectAIModel(strategy.aiModel || 'auto', request.context.performanceCritical);
         const prompt = this.buildCodeGenerationPrompt(request, specialists);
         try {
-            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, modelChoice, { timeout: 90000, priority: 'high' });
-            const generatedContent = this.extractCodeFromResponse(result.response);
+            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, {
+                taskId: `code_gen_${request.id}`,
+                timestamp: new Date(),
+                sessionId: 'intelligent_code_generator'
+            }, { timeout: 90000, priority: 'high' });
+            const generatedContent = this.extractCodeFromResponse(result.response || '');
             const filename = this.generateFilename(request);
             return {
                 filename,
@@ -391,7 +410,7 @@ Return detailed analysis as JSON:
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, // 복잡한 분석에는 Opus 사용
             { timeout: 60000, priority: 'medium' });
-            const analysisData = JSON.parse(result.response);
+            const analysisData = JSON.parse(result.response || '{}');
             return {
                 complexity: analysisData.complexity,
                 quality: analysisData.quality,
@@ -495,9 +514,13 @@ Return as JSON:
 }
 `;
         try {
-            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, 'sonnet', // 문서 생성에는 Sonnet 사용
+            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, {
+                taskId: `doc_gen_${Date.now()}`,
+                timestamp: new Date(),
+                sessionId: 'intelligent_code_generator'
+            }, // 문서 생성에는 Sonnet 사용
             { timeout: 45000, priority: 'medium' });
-            return JSON.parse(result.response);
+            return JSON.parse(result.response || '{}');
         }
         catch (error) {
             logger_js_1.default.warn('Documentation generation failed, using basic docs', { error });
@@ -1228,13 +1251,18 @@ private:
         // Generate header files for components/systems
         if (request.type === 'component' || request.type === 'system') {
             supportingFiles.push({
-                type: request.type,
-                name: `${request.name}_interface`,
-                code: `// Interface for ${request.name}`,
-                language: 'cpp',
-                quality: { score: 0.9, issues: [], suggestions: [] },
-                dependencies: [],
-                tests: [],
+                id: `${request.id}_interface`,
+                request: request,
+                primaryFile: {
+                    filename: `${request.name}_interface.h`,
+                    content: `// Interface for ${request.name}`,
+                    language: 'cpp',
+                    purpose: 'Interface definition',
+                    dependencies: [],
+                    estimatedLines: 50,
+                    complexity: { cyclomatic: 1, cognitive: 1, lines: 50, functions: 1, classes: 1, dependencies: 0, grade: 'A' }
+                },
+                supportingFiles: [],
                 documentation: {
                     overview: `Interface documentation for ${request.name}`,
                     usage: [],
@@ -1243,11 +1271,19 @@ private:
                     limitations: [],
                     futureEnhancements: []
                 },
-                metadata: {
-                    complexity: 'low',
-                    estimatedTime: 5,
-                    reviewStatus: 'auto-generated'
-                }
+                tests: [],
+                analysis: {
+                    complexity: { cyclomatic: 1, cognitive: 1, lines: 50, functions: 1, classes: 1, dependencies: 0, grade: 'A' },
+                    quality: { readability: 90, testability: 80, reusability: 85, documentation: 75, consistency: 90, overallScore: 84 },
+                    performance: { estimatedPerformance: 'Excellent', bottlenecks: [], optimizations: [], scalability: 'High', memoryUsage: 'Low', cacheEfficiency: 'Good' },
+                    security: { vulnerabilities: [], securityScore: 95, recommendations: [], compliance: [] },
+                    maintainability: { modifiability: 85, extensibility: 90, debuggability: 80, portability: 85, overallScore: 85 },
+                    compliance: { standardsCompliance: [], bestPractices: [], violations: [], overallCompliance: 95 },
+                    recommendations: []
+                },
+                alternatives: [],
+                generatedAt: Date.now(),
+                generatorVersion: '2.0.0'
             });
         }
         return supportingFiles;

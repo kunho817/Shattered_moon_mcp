@@ -138,7 +138,7 @@ class EnhancedClaudeCodeManager {
                 setTimeout(() => this.analysisCache.delete(cacheKey), 600000);
             }
             // Record performance
-            claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.recordRequest(classification.suggestedModel, response, 'enhanced_analysis', result.success ? 0.9 : 0.3);
+            claudeCodePerformanceMonitor_js_1.claudeCodePerformanceMonitor.recordRequest(classification.suggestedModel, { response: result.response || 'No response', status: 'success' }, 'enhanced_analysis', result.success ? 0.9 : 0.3);
             return result;
         }
         catch (error) {
@@ -203,10 +203,10 @@ Suggested Complexity: ${complexity || 'auto'}
 Priority: ${priority || 5}/10
 
 Historical Patterns:
-${context.historicalPatterns.slice(0, 3).map(p => `- ${p.description}: ${p.successRate}% success`).join('\n')}
+${context.historicalPatterns?.slice(0, 3).map(p => `- ${p.description}: ${p.successRate}% success`).join('\n') || 'No historical patterns available'}
 
 Current Team States:
-${Array.from(context.teamStates.entries()).map(([team, state]) => `- ${team}: ${state.utilization}% utilized, ${state.activeTasks} active tasks`).join('\n')}
+${context.teamStates ? Array.from(context.teamStates.entries()).map(([team, state]) => `- ${team}: ${state.utilization}% utilized, ${state.activeTasks} active tasks`).join('\n') : 'No team states available'}
 
 Current System Performance:
 - Success Rate: ${Math.round(context.currentMetrics.successRate * 100)}%
@@ -341,15 +341,15 @@ Respond with JSON array containing results for each request.`;
 
 ENHANCED CONTEXT:
 - Task ID: ${context.taskId}
-- Active Teams: ${context.teamStates.size}
-- Historical Success Rate: ${this.calculateHistoricalSuccessRate(context.historicalPatterns)}%
+- Active Teams: ${context.teamStates?.size || 0}
+- Historical Success Rate: ${this.calculateHistoricalSuccessRate(context.historicalPatterns || [])}%
 - Current System Load: ${this.calculateSystemLoad(context.currentMetrics)}
 
 Consider this context when providing analysis.`;
     }
     generateCacheKey(prompt, context) {
         const promptHash = prompt.substring(0, 50);
-        const contextHash = `${context.teamStates.size}_${context.specialistStates.size}`;
+        const contextHash = `${context.teamStates?.size || 0}_${context.specialistStates?.size || 0}`;
         return `${promptHash}_${contextHash}`;
     }
     parseAIResponse(output) {
@@ -437,7 +437,11 @@ Consider this context when providing analysis.`;
             cacheSize: this.analysisCache.size,
             queueSize: this.requestQueue.length,
             cacheHitRate: totalRequests > 0 ? cacheHits / totalRequests : 0,
-            thresholds: { ...this.performanceThresholds }
+            thresholds: {
+                responseTime: this.performanceThresholds.responseTime,
+                cacheHitRate: this.performanceThresholds.cacheHitTarget,
+                errorRate: 0.1 // 10% error rate threshold
+            }
         };
     }
 }

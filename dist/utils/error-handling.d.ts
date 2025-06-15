@@ -130,5 +130,5 @@ export declare function HandleErrors(config?: {
     retries?: number;
     fallback?: any;
 }): (target: any, propertyKey: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
-export { ErrorSeverity, ErrorCategory, type EnhancedError, type ErrorHandlerConfig };
+export {};
 //# sourceMappingURL=error-handling.d.ts.map

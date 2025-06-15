@@ -75,7 +75,7 @@ export class WebSocketTransport extends EventEmitter {
 
     try {
       this.server = new WebSocketServer({
-        port: this.config.port,
+        port: this.config?.port || 3001,
         perMessageDeflate: {
           threshold: 1024,
           concurrencyLimit: 10
@@ -87,8 +87,8 @@ export class WebSocketTransport extends EventEmitter {
       this.startPingInterval();
 
       this.isRunning = true;
-      this.emit('server:started', this.config.port);
-      logger.info(`WebSocket server started on port ${this.config.port}`);
+      this.emit('server:started', this.config?.port || 3001);
+      logger.info(`WebSocket server started on port ${this.config?.port || 3001}`);
     } catch (error) {
       logger.error('Failed to start WebSocket server:', error);
       throw error;
@@ -427,7 +427,7 @@ export class WebSocketTransport extends EventEmitter {
           client.socket.ping();
         }
       }
-    }, this.config.pingInterval);
+    }, this.config?.pingInterval || 30000);
   }
 
   private isValidMessage(message: any): message is WSMessage {

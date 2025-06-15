@@ -507,4 +507,5 @@ function HandleErrors(config = {}) {
         return descriptor;
     };
 }
+// Types already exported above
 //# sourceMappingURL=error-handling.js.map

@@ -90,7 +90,11 @@ export declare class EnhancedClaudeCodeManager {
         cacheSize: number;
         queueSize: number;
         cacheHitRate: number;
-        thresholds: typeof this.performanceThresholds;
+        thresholds: {
+            responseTime: number;
+            cacheHitRate: number;
+            errorRate: number;
+        };
     };
 }
 export declare const enhancedClaudeCodeManager: EnhancedClaudeCodeManager;

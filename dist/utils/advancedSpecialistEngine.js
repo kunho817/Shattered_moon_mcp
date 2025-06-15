@@ -93,9 +93,13 @@ Consider:
 Return just the specialist type name that best matches.
 `;
         try {
-            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, 'sonnet', // 빠른 선택을 위해 Sonnet 사용
+            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, {
+                taskId: `specialist_select_${Date.now()}`,
+                timestamp: new Date(),
+                sessionId: 'advanced_specialist_engine'
+            }, // 빠른 선택을 위해 Sonnet 사용
             { timeout: 20000, priority: 'medium' });
-            const selectedType = result.response.trim();
+            const selectedType = result.response?.trim() || 'algorithm-specialist';
             if (selectedType in index_js_1.SPECIALISTS) {
                 return selectedType;
             }
@@ -160,7 +164,7 @@ Return as JSON:
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, // 세밀한 커스터마이징에는 Opus 사용
             { timeout: 45000, priority: 'high' });
-            return JSON.parse(result.response);
+            return JSON.parse(result.response || '{}');
         }
         catch (error) {
             logger_js_1.default.warn('AI specialist customization failed, using fallback', { error });
@@ -219,7 +223,11 @@ Return as JSON:
             speedScore: 0.6 + (Math.random() * 0.35), // 개인차 반영
             innovationScore: 0.5 + (Math.random() * 0.4),
             reliabilityScore: 0.75 + (avgSkillLevel * 0.2),
-            mentorshipScore: 0.4 + (Math.random() * 0.5)
+            mentorshipScore: 0.4 + (Math.random() * 0.5),
+            recentProjects: [],
+            strengths: [],
+            weaknesses: [],
+            improvementAreas: []
         };
         // 복잡도와 요구사항에 따른 조정
         if (request.complexity === 'critical') {
@@ -229,13 +237,11 @@ Return as JSON:
         if (request.innovationRequired) {
             basePerformance.innovationScore *= 1.3;
         }
-        return {
-            ...basePerformance,
-            recentProjects: [],
-            strengths: this.identifyStrengths(skillProfile, basePerformance),
-            weaknesses: this.identifyWeaknesses(skillProfile, basePerformance),
-            improvementAreas: this.identifyImprovementAreas(skillProfile, request)
-        };
+        // Update with computed values
+        basePerformance.strengths = this.identifyStrengths(skillProfile, basePerformance);
+        basePerformance.weaknesses = this.identifyWeaknesses(skillProfile, basePerformance);
+        basePerformance.improvementAreas = this.identifyImprovementAreas(skillProfile, request);
+        return basePerformance;
     }
     /**
      * 적응 프로파일 생성
@@ -405,7 +411,7 @@ Return as JSON:
 `;
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, { timeout: 45000, priority: 'medium' });
-            const planData = JSON.parse(result.response);
+            const planData = JSON.parse(result.response || '{}');
             return {
                 specialistId: specialist.id,
                 currentLevel: specialist.level,
@@ -919,7 +925,8 @@ Return as JSON:
                     description: 'Assess progress halfway through',
                     targetDate: Date.now() + (60 * 24 * 60 * 60 * 1000), // 60 days
                     successCriteria: ['Skill improvement visible'],
-                    skillRequirements: {}
+                    skillRequirements: {},
+                    rewards: ['Performance bonus', 'Skill certification']
                 }
             ]
         };

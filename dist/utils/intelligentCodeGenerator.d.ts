@@ -3,6 +3,7 @@
  * AI 기반 고급 코드 생성, 품질 분석, 최적화 및 맞춤화
  */
 export interface CodeGenerationRequest {
+    id: string;
     type: 'component' | 'system' | 'shader' | 'event' | 'utility' | 'algorithm' | 'interface' | 'test';
     name: string;
     description?: string;

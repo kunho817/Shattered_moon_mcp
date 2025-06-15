@@ -241,7 +241,7 @@ Return as JSON array with this structure:
     );
 
     try {
-      const strategicTasks = JSON.parse(result.response) as StrategicTask[];
+      const strategicTasks = JSON.parse(result.response || '[]') as StrategicTask[];
       
       // 검증 및 보정
       return strategicTasks.map((task, index) => ({
@@ -298,12 +298,16 @@ Return as JSON array:
 
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'sonnet', // 전술적 분해에는 Sonnet 사용
+        { 
+          taskId: `tactical_decomp_${strategicTask.id}`,
+          timestamp: new Date(),
+          sessionId: 'hierarchical_task_decomposer'
+        }, // 전술적 분해에는 Sonnet 사용
         { timeout: 30000, priority: 'medium' }
       );
 
       try {
-        const tacticalTasks = JSON.parse(result.response) as TacticalTask[];
+        const tacticalTasks = JSON.parse(result.response || '[]') as TacticalTask[];
         allTacticalTasks.push(...tacticalTasks.map((task, index) => ({
           ...task,
           id: task.id || `tactical_${strategicTask.id}_${index + 1}`,
@@ -369,11 +373,15 @@ Return as JSON array:
         try {
           const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
             prompt,
-            'sonnet',
+            { 
+              taskId: `operational_decomp_${tacticalTask.id}`,
+              timestamp: new Date(),
+              sessionId: 'hierarchical_task_decomposer'
+            },
             { timeout: 25000, priority: 'medium' }
           );
 
-          const operationalTasks = JSON.parse(result.response) as OperationalTask[];
+          const operationalTasks = JSON.parse(result.response || '[]') as OperationalTask[];
           return operationalTasks.map((task, index) => ({
             ...task,
             id: task.id || `operational_${tacticalTask.id}_${index + 1}`,
@@ -442,11 +450,15 @@ Return as JSON array:
       try {
         const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
           prompt,
-          'sonnet',
+          { 
+            taskId: `atomic_decomp_${operationalTask.id}`,
+            timestamp: new Date(),
+            sessionId: 'hierarchical_task_decomposer'
+          },
           { timeout: 20000, priority: 'low' }
         );
 
-        const atomicTasks = JSON.parse(result.response) as AtomicTask[];
+        const atomicTasks = JSON.parse(result.response || '[]') as AtomicTask[];
         return atomicTasks.map((task, index) => ({
           ...task,
           id: task.id || `atomic_${operationalTask.id}_${index + 1}`,
@@ -718,7 +730,7 @@ Return as JSON:
         { timeout: 30000, priority: 'medium' }
       );
 
-      const recommendation = JSON.parse(result.response);
+      const recommendation = JSON.parse(result.response || '{}');
       logger.info('Strategy recommendation generated', { recommendation });
       
       return recommendation;

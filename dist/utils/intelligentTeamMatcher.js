@@ -176,7 +176,7 @@ Return as JSON array:
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, // 복잡한 팀 구성에는 Opus 사용
             { timeout: 60000, priority: 'high' });
-            const aiCompositions = JSON.parse(result.response);
+            const aiCompositions = JSON.parse(result.response || '[]');
             // AI 추천을 실제 TeamComposition 객체로 변환
             const compositions = await Promise.all(aiCompositions.map(async (aiComp) => await this.convertAICompositionToTeamComposition(aiComp, candidatePool, task)));
             return compositions.filter(comp => comp.members.length >= constraints.minTeamSize);

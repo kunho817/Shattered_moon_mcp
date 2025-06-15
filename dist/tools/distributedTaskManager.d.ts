@@ -4,10 +4,10 @@ export declare const distributedTaskManager: (params: {
     complexity?: "low" | "medium" | "high" | "critical" | undefined;
     teams?: string[] | undefined;
 }) => Promise<{
-    content: Array<{
-        type: "text";
+    content: {
+        type: string;
         text: string;
-    }>;
+    }[];
 } | {
     content: {
         type: "text";

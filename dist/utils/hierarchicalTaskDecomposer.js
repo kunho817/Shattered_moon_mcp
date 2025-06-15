@@ -111,7 +111,7 @@ Return as JSON array with this structure:
         const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, // 전략적 분석에는 Opus 사용
         { timeout: 45000, priority: 'high' });
         try {
-            const strategicTasks = JSON.parse(result.response);
+            const strategicTasks = JSON.parse(result.response || '[]');
             // 검증 및 보정
             return strategicTasks.map((task, index) => ({
                 ...task,
@@ -159,10 +159,14 @@ Return as JSON array:
   "testCriteria": ["test1", "test2"]
 }]
 `;
-            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, 'sonnet', // 전술적 분해에는 Sonnet 사용
+            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, {
+                taskId: `tactical_decomp_${strategicTask.id}`,
+                timestamp: new Date(),
+                sessionId: 'hierarchical_task_decomposer'
+            }, // 전술적 분해에는 Sonnet 사용
             { timeout: 30000, priority: 'medium' });
             try {
-                const tacticalTasks = JSON.parse(result.response);
+                const tacticalTasks = JSON.parse(result.response || '[]');
                 allTacticalTasks.push(...tacticalTasks.map((task, index) => ({
                     ...task,
                     id: task.id || `tactical_${strategicTask.id}_${index + 1}`,
@@ -218,8 +222,12 @@ Return as JSON array:
 }]
 `;
                 try {
-                    const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, 'sonnet', { timeout: 25000, priority: 'medium' });
-                    const operationalTasks = JSON.parse(result.response);
+                    const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, {
+                        taskId: `operational_decomp_${tacticalTask.id}`,
+                        timestamp: new Date(),
+                        sessionId: 'hierarchical_task_decomposer'
+                    }, { timeout: 25000, priority: 'medium' });
+                    const operationalTasks = JSON.parse(result.response || '[]');
                     return operationalTasks.map((task, index) => ({
                         ...task,
                         id: task.id || `operational_${tacticalTask.id}_${index + 1}`,
@@ -278,8 +286,12 @@ Return as JSON array:
 }]
 `;
             try {
-                const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, 'sonnet', { timeout: 20000, priority: 'low' });
-                const atomicTasks = JSON.parse(result.response);
+                const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, {
+                    taskId: `atomic_decomp_${operationalTask.id}`,
+                    timestamp: new Date(),
+                    sessionId: 'hierarchical_task_decomposer'
+                }, { timeout: 20000, priority: 'low' });
+                const atomicTasks = JSON.parse(result.response || '[]');
                 return atomicTasks.map((task, index) => ({
                     ...task,
                     id: task.id || `atomic_${operationalTask.id}_${index + 1}`,
@@ -488,7 +500,7 @@ Return as JSON:
 `;
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, { timeout: 30000, priority: 'medium' });
-            const recommendation = JSON.parse(result.response);
+            const recommendation = JSON.parse(result.response || '{}');
             logger_js_1.default.info('Strategy recommendation generated', { recommendation });
             return recommendation;
         }

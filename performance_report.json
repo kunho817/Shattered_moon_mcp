@@ -1,0 +1,164 @@
+{
+  "memoryAnalysis": {
+    "samples": [
+      {
+        "timestamp": 1749959989357,
+        "rss": 78737408,
+        "heapUsed": 16550648,
+        "heapTotal": 30695424,
+        "external": 1585780
+      },
+      {
+        "timestamp": 1749959989466,
+        "rss": 82931712,
+        "heapUsed": 17008720,
+        "heapTotal": 32006144,
+        "external": 1585780
+      },
+      {
+        "timestamp": 1749959989566,
+        "rss": 82931712,
+        "heapUsed": 17010472,
+        "heapTotal": 32006144,
+        "external": 1585780
+      },
+      {
+        "timestamp": 1749959989667,
+        "rss": 82931712,
+        "heapUsed": 17012224,
+        "heapTotal": 32006144,
+        "external": 1585780
+      },
+      {
+        "timestamp": 1749959989767,
+        "rss": 82931712,
+        "heapUsed": 17014648,
+        "heapTotal": 32006144,
+        "external": 1585780
+      },
+      {
+        "timestamp": 1749959989868,
+        "rss": 82931712,
+        "heapUsed": 17017752,
+        "heapTotal": 32006144,
+        "external": 1585780
+      },
+      {
+        "timestamp": 1749959989968,
+        "rss": 82931712,
+        "heapUsed": 17019504,
+        "heapTotal": 32006144,
+        "external": 1585780
+      },
+      {
+        "timestamp": 1749959990068,
+        "rss": 82931712,
+        "heapUsed": 17021256,
+        "heapTotal": 32006144,
+        "external": 1585780
+      },
+      {
+        "timestamp": 1749959990169,
+        "rss": 82931712,
+        "heapUsed": 17023008,
+        "heapTotal": 32006144,
+        "external": 1585780
+      },
+      {
+        "timestamp": 1749959990269,
+        "rss": 82931712,
+        "heapUsed": 17024760,
+        "heapTotal": 32006144,
+        "external": 1585780
+      }
+    ],
+    "peakMemory": 82931712,
+    "averageMemory": 71783137.28,
+    "growthRate": 367.14369743692436,
+    "potentialLeaks": 0,
+    "memoryEfficiency": 52,
+    "recommendations": [
+      "Consider implementing object pooling for frequently created objects",
+      "Review event listener cleanup and WeakMap usage"
+    ]
+  },
+  "performanceBottlenecks": [
+    {
+      "type": "compilation",
+      "severity": "critical",
+      "description": "TypeScript compilation failed",
+      "impact": "Build process broken",
+      "error": "Command failed with code 2",
+      "recommendation": "Fix TypeScript errors before optimization"
+    }
+  ],
+  "optimizationRecommendations": [
+    {
+      "category": "memory",
+      "priority": "high",
+      "title": "Memory leak detected",
+      "description": "Memory growth rate of 367.14MB/min indicates potential leaks",
+      "action": "Review object lifecycle management and implement proper cleanup",
+      "estimatedImpact": "High"
+    },
+    {
+      "category": "performance",
+      "priority": "critical",
+      "title": "Critical performance issues",
+      "description": "Critical bottlenecks detected affecting system functionality",
+      "action": "Address compilation errors and critical performance bottlenecks immediately",
+      "estimatedImpact": "Critical"
+    },
+    {
+      "category": "dependencies",
+      "priority": "medium",
+      "title": "Unused dependencies detected",
+      "description": "18 unused dependencies found",
+      "action": "Remove unused dependencies to reduce bundle size and improve build performance",
+      "estimatedImpact": "Medium"
+    },
+    {
+      "category": "general",
+      "priority": "low",
+      "title": "Enable production optimizations",
+      "description": "Ensure production builds use optimal configurations",
+      "action": "Review build configuration for minification, tree-shaking, and code splitting",
+      "estimatedImpact": "Low"
+    }
+  ],
+  "systemHealth": {},
+  "riskAssessment": {},
+  "fileSystemOptimization": {
+    "largeFiles": [],
+    "duplicateFiles": [],
+    "optimizationPotential": 0,
+    "totalSize": 747779,
+    "fileCount": 46
+  },
+  "bundleAnalysis": {
+    "totalDependencies": 18,
+    "unusedDependencies": [
+      "@modelcontextprotocol/sdk",
+      "@types/node",
+      "cors",
+      "dotenv",
+      "express",
+      "helmet",
+      "tsx",
+      "typescript",
+      "winston",
+      "ws",
+      "zod",
+      "@types/cors",
+      "@types/express",
+      "@types/jest",
+      "@types/ws",
+      "jest",
+      "nodemon",
+      "ts-jest"
+    ],
+    "reductionPotential": 100,
+    "packageSizes": {},
+    "recommendations": []
+  }
+}

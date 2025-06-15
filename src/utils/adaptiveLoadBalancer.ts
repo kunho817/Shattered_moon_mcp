@@ -452,7 +452,7 @@ Return as JSON array:
         { timeout: 45000, priority: 'high' }
       );
 
-      const aiBottlenecks = JSON.parse(result.response) as (BottleneckAnalysis & { confidence: number })[];
+      const aiBottlenecks = JSON.parse(result.response || '[]') as (BottleneckAnalysis & { confidence: number })[];
       
       // 신뢰도가 높은 분석만 반환
       return aiBottlenecks
@@ -731,7 +731,7 @@ Return optimized actions in same JSON format, maintaining only the most effectiv
         { timeout: 30000, priority: 'medium' }
       );
 
-      const optimizedActions = JSON.parse(result.response) as RebalanceAction[];
+      const optimizedActions = JSON.parse(result.response || '[]') as RebalanceAction[];
       
       logger.info('Action plan optimized', {
         originalActions: actions.length,

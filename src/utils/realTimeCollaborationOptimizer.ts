@@ -313,7 +313,7 @@ Return analysis as JSON:
         { timeout: 60000, priority: 'high' }
       );
 
-      return JSON.parse(result.response);
+      return JSON.parse(result.response || '{}');
     } catch (error) {
       logger.warn('AI collaboration pattern analysis failed, using fallback', { error });
       return this.generateFallbackPatternAnalysis(teams, communicationPatterns);
@@ -484,7 +484,7 @@ Return as JSON:
         { timeout: 90000, priority: 'high' }
       );
 
-      const recommendations = JSON.parse(result.response) as OptimizationRecommendations;
+      const recommendations = JSON.parse(result.response || '{}') as OptimizationRecommendations;
       
       // 추천사항 검증 및 보정
       return this.validateAndEnhanceRecommendations(recommendations, teams);

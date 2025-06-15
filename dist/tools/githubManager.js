@@ -8,7 +8,33 @@ const services_js_1 = require("../server/services.js");
 const logger_js_1 = __importDefault(require("../utils/logger.js"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
+const promises_1 = require("fs/promises");
+const path_1 = require("path");
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
+async function findGitRoot(startPath) {
+    let currentPath = startPath;
+    while (currentPath !== (0, path_1.dirname)(currentPath)) {
+        try {
+            await (0, promises_1.access)((0, path_1.join)(currentPath, '.git'));
+            return currentPath;
+        }
+        catch {
+            currentPath = (0, path_1.dirname)(currentPath);
+        }
+    }
+    // Check if we're in the Game_Engine directory and look for shattered_moon_mcp_ts
+    if (currentPath.includes('Game_Engine')) {
+        const mcpPath = (0, path_1.join)(currentPath, 'shattered_moon_mcp_ts');
+        try {
+            await (0, promises_1.access)((0, path_1.join)(mcpPath, '.git'));
+            return mcpPath;
+        }
+        catch {
+            // If not found, return null
+        }
+    }
+    return null;
+}
 async function githubManager(params) {
     const { stateManager, performanceMonitor } = (0, services_js_1.getServices)();
     return await performanceMonitor.measure('github_manager', 'execute', async () => {
@@ -35,11 +61,11 @@ async function githubManager(params) {
                 case 'issue':
                     result = await handleIssue(data, gitConfig);
                     break;
-                case 'status':
-                    result = await handleStatus(gitConfig);
-                    break;
                 case 'branch':
                     result = await handleBranch(data, gitConfig);
+                    break;
+                case 'status':
+                    result = await handleStatus(gitConfig);
                     break;
                 case 'tag':
                     result = await handleTag(data, gitConfig);
@@ -81,20 +107,35 @@ async function githubManager(params) {
 }
 async function getGitConfig() {
     const config = {
-        useHttps: true
+        useHttps: false // Default to SSH
     };
     try {
+        // Force use of specific git repository path
+        const gitRepoPath = '/home/aizure0817/Game_Engine/shattered_moon_mcp_ts';
+        logger_js_1.default.info(`Using hardcoded git repository path: ${gitRepoPath}`);
+        // Set up execution options with absolute paths
+        const execOptions = {
+            cwd: gitRepoPath
+        };
         // Get current remote URL
-        const { stdout: remoteUrl } = await execAsync('git remote get-url origin');
+        const { stdout: remoteUrl } = await execAsync(`git --git-dir=${gitRepoPath}/.git --work-tree=${gitRepoPath} remote get-url origin`, execOptions);
         config.remoteUrl = remoteUrl.trim();
+        // Determine if using SSH or HTTPS
+        config.useHttps = config.remoteUrl.startsWith('https://');
         // Get current branch
-        const { stdout: branch } = await execAsync('git branch --show-current');
+        const { stdout: branch } = await execAsync(`git --git-dir=${gitRepoPath}/.git --work-tree=${gitRepoPath} branch --show-current`, execOptions);
         config.branch = branch.trim();
-        // Check for GitHub token in environment
+        // Check for GitHub token in environment (only needed for HTTPS and API calls)
         config.token = process.env.GITHUB_TOKEN;
         // Get git username
-        const { stdout: username } = await execAsync('git config user.name');
+        const { stdout: username } = await execAsync(`git --git-dir=${gitRepoPath}/.git --work-tree=${gitRepoPath} config user.name`, execOptions);
         config.username = username.trim();
+        logger_js_1.default.info('Git configuration detected', {
+            useHttps: config.useHttps,
+            branch: config.branch,
+            hasToken: !!config.token,
+            username: config.username
+        });
     }
     catch (error) {
         logger_js_1.default.warn('Could not get complete git config', { error });
@@ -104,7 +145,14 @@ async function getGitConfig() {
 async function executeGitCommand(command, useHttps = true) {
     try {
         logger_js_1.default.debug(`Executing git command: ${command}`);
-        const { stdout, stderr } = await execAsync(command);
+        // Force use of specific git repository path
+        const gitRepoPath = '/home/aizure0817/Game_Engine/shattered_moon_mcp_ts';
+        // Add git directory flags to command
+        const gitCommand = command.replace(/^git\s/, `git --git-dir=${gitRepoPath}/.git --work-tree=${gitRepoPath} `);
+        logger_js_1.default.debug(`Modified git command: ${gitCommand}`);
+        const { stdout, stderr } = await execAsync(gitCommand, {
+            cwd: gitRepoPath
+        });
         if (stderr && !stderr.includes('warning')) {
             throw new Error(stderr);
         }
@@ -399,94 +447,104 @@ async function handleIssue(data, config) {
         throw new Error(`Issue creation failed: ${error.message}`);
     }
 }
+async function handleBranch(data, config) {
+    const startTime = Date.now();
+    const branchName = data.name || `phase-ii-mcp-enhancement-${Date.now()}`;
+    const fromBranch = data.from || 'main';
+    const createOnly = data.createOnly || false;
+    try {
+        // Check if branch already exists
+        try {
+            await execAsync(`git rev-parse --verify ${branchName}`);
+            return {
+                success: true,
+                action: 'branch_exists',
+                branchName,
+                message: `Branch '${branchName}' already exists`,
+                duration: Date.now() - startTime
+            };
+        }
+        catch {
+            // Branch doesn't exist, create it
+        }
+        // Create new branch
+        await execAsync(`git checkout -b ${branchName} ${fromBranch}`);
+        logger_js_1.default.info(`Created new branch: ${branchName}`);
+        const result = {
+            success: true,
+            action: 'branch_created',
+            branchName,
+            fromBranch,
+            message: `Successfully created branch '${branchName}' from '${fromBranch}'`,
+            duration: Date.now() - startTime,
+            nextSteps: createOnly ? [
+                'Start development on the new branch',
+                'Make your changes and commit them',
+                'Push the branch when ready: git push -u origin ' + branchName
+            ] : []
+        };
+        // Push to remote if requested
+        if (!createOnly) {
+            try {
+                await execAsync(`git push -u origin ${branchName}`);
+                result.message += ' and pushed to remote';
+                result.nextSteps = [
+                    'Branch is ready for development',
+                    'Start making your changes',
+                    'Create a pull request when ready'
+                ];
+            }
+            catch (error) {
+                logger_js_1.default.warn('Failed to push branch to remote', { error: error.message });
+                result.nextSteps = [
+                    'Branch created locally but not pushed to remote',
+                    'Push manually when ready: git push -u origin ' + branchName,
+                    'Check if you have push permissions'
+                ];
+            }
+        }
+        return result;
+    }
+    catch (error) {
+        throw new Error(`Branch creation failed: ${error.message}`);
+    }
+}
 async function handleStatus(config) {
     const startTime = Date.now();
     try {
-        const { stdout: statusOutput } = await execAsync('git status --porcelain');
-        const { stdout: branchInfo } = await execAsync('git status -sb');
-        const { stdout: lastCommit } = await execAsync('git log -1 --oneline');
-        const modifiedFiles = statusOutput.split('\n').filter((line) => line.trim()).length;
-        const hasChanges = modifiedFiles > 0;
-        // Parse branch tracking info
-        const trackingMatch = branchInfo.match(/## (.+)\.\.\.(.+) \[(.+)\]/);
-        const ahead = trackingMatch ? (trackingMatch[3].match(/ahead (\d+)/) || [0, 0])[1] : 0;
-        const behind = trackingMatch ? (trackingMatch[3].match(/behind (\d+)/) || [0, 0])[1] : 0;
+        const { output: status } = await executeGitCommand('git status --porcelain');
+        const { output: branch } = await executeGitCommand('git branch --show-current');
+        const { output: remoteStatus } = await executeGitCommand('git status -uno --porcelain=v1') || '';
+        const files = status.split('\n').filter((line) => line.trim()).map((line) => {
+            const statusCode = line.substring(0, 2);
+            const fileName = line.substring(3);
+            return { status: statusCode, file: fileName };
+        });
         return {
             success: true,
-            branch: config.branch,
-            modifiedFiles,
-            hasChanges,
-            lastCommit: lastCommit.trim(),
-            ahead: parseInt(ahead),
-            behind: parseInt(behind),
+            currentBranch: branch.trim(),
+            hasChanges: files.length > 0,
+            changedFiles: files.length,
+            files: files.slice(0, 10), // Limit to first 10 files
+            remoteStatus: remoteStatus.trim() || 'Up to date',
+            gitConfig: {
+                useHttps: config.useHttps,
+                hasToken: !!config.token,
+                username: config.username
+            },
             duration: Date.now() - startTime,
-            suggestions: hasChanges ? [
-                'Commit your changes before switching branches',
-                'Use git stash to temporarily save changes'
-            ] : []
+            suggestions: files.length > 0 ? [
+                'Review changes with: git diff',
+                'Add files with: git add <file>',
+                'Commit changes with: git commit -m "message"'
+            ] : [
+                'Working directory is clean',
+                'Ready to pull latest changes or create new branch'
+            ]
         };
     }
     catch (error) {
         throw new Error(`Status check failed: ${error.message}`);
-    }
-}
-async function handleBranch(data, config) {
-    const startTime = Date.now();
-    const action = data.action || 'list';
-    const branchName = data.name;
-    try {
-        switch (action) {
-            case 'create':
-                if (!branchName)
-                    throw new Error('Branch name required');
-                await execAsync(`git checkout -b ${branchName}`);
-                return {
-                    success: true,
-                    action: 'created',
-                    branch: branchName,
-                    duration: Date.now() - startTime
-                };
-            case 'delete':
-                if (!branchName)
-                    throw new Error('Branch name required');
-                await execAsync(`git branch -d ${branchName}`);
-                return {
-                    success: true,
-                    action: 'deleted',
-                    branch: branchName,
-                    duration: Date.now() - startTime
-                };
-            case 'checkout':
-                if (!branchName)
-                    throw new Error('Branch name required');
-                await execAsync(`git checkout ${branchName}`);
-                return {
-                    success: true,
-                    action: 'switched',
-                    branch: branchName,
-                    duration: Date.now() - startTime
-                };
-            case 'list':
-            default:
-                const { stdout: output } = await execAsync('git branch -a');
-                const branches = output.split('\n')
-                    .map((b) => b.trim())
-                    .filter((b) => b)
-                    .map((b) => ({
-                    name: b.replace(/^\* /, '').replace(/^remotes\//, ''),
-                    current: b.startsWith('* '),
-                    remote: b.includes('remotes/')
-                }));
-                return {
-                    success: true,
-                    branches,
-                    currentBranch: branches.find((b) => b.current)?.name,
-                    duration: Date.now() - startTime
-                };
-        }
-    }
-    catch (error) {
-        throw new Error(`Branch operation failed: ${error.message}`);
     }
 }
 async function handleTag(data, config) {

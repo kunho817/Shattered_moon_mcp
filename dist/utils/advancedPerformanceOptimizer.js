@@ -183,7 +183,7 @@ Return as JSON array of strings:
 `;
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, { timeout: 30000, priority: 'medium' });
-            return JSON.parse(result.response);
+            return JSON.parse(result.response || '{}');
         }
         catch (error) {
             logger_js_1.default.warn('AI Amdahl recommendations failed, using fallback', { error });
@@ -233,7 +233,7 @@ Return as JSON:
 `;
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, { timeout: 45000, priority: 'high' });
-            const recommendation = JSON.parse(result.response);
+            const recommendation = JSON.parse(result.response || '{}');
             const strategy = this.optimizationStrategies.get(recommendation.strategy);
             if (strategy) {
                 return strategy;
@@ -468,8 +468,12 @@ Return as JSON:
 }
 `;
         try {
-            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, 'sonnet', { timeout: 20000, priority: 'low' });
-            const tuning = JSON.parse(result.response);
+            const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, {
+                taskId: `perf_tuning_${Date.now()}`,
+                timestamp: new Date(),
+                sessionId: 'performance_optimizer'
+            }, { timeout: 20000, priority: 'low' });
+            const tuning = JSON.parse(result.response || '{}');
             return {
                 ...baseConfig,
                 parallelismLevel: tuning.parallelismLevel || baseConfig.parallelismLevel,

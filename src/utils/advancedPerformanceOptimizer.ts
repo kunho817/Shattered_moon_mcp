@@ -465,7 +465,7 @@ Return as JSON array of strings:
         { timeout: 30000, priority: 'medium' }
       );
 
-      return JSON.parse(result.response);
+      return JSON.parse(result.response || '{}');
     } catch (error) {
       logger.warn('AI Amdahl recommendations failed, using fallback', { error });
       return this.generateFallbackAmdahlRecommendations(serialPortion, optimalCores, bottlenecks);
@@ -526,7 +526,7 @@ Return as JSON:
         { timeout: 45000, priority: 'high' }
       );
 
-      const recommendation = JSON.parse(result.response);
+      const recommendation = JSON.parse(result.response || '{}');
       const strategy = this.optimizationStrategies.get(recommendation.strategy);
       
       if (strategy) {
@@ -829,11 +829,15 @@ Return as JSON:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'sonnet',
+        { 
+          taskId: `perf_tuning_${Date.now()}`,
+          timestamp: new Date(),
+          sessionId: 'performance_optimizer'
+        },
         { timeout: 20000, priority: 'low' }
       );
 
-      const tuning = JSON.parse(result.response);
+      const tuning = JSON.parse(result.response || '{}');
       
       return {
         ...baseConfig,
@@ -1010,7 +1014,7 @@ Return as JSON:
     return recommendations;
   }
 
-  private async updateOptimizationHistory(result: OptimizationResult, profile: PerformanceProfile): void {
+  private async updateOptimizationHistory(result: OptimizationResult, profile: PerformanceProfile): Promise<void> {
     this.optimizationHistory.push(result);
     
     // 히스토리 업데이트

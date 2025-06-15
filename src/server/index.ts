@@ -31,10 +31,17 @@ export class ShatteredMoonMCPServer {
       },
       {
         capabilities: {
-          tools: {},
-          resources: {},
-          prompts: {},
-          sampling: {}
+          tools: {
+            listChanged: true
+          },
+          resources: {
+            subscribe: true,
+            listChanged: true
+          },
+          prompts: {
+            listChanged: true
+          },
+          logging: {}
         }
       }
     );

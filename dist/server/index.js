@@ -27,10 +27,17 @@ class ShatteredMoonMCPServer {
             description: 'Advanced DirectX 12 game engine development assistant with TypeScript SDK'
         }, {
             capabilities: {
-                tools: {},
-                resources: {},
-                prompts: {},
-                sampling: {}
+                tools: {
+                    listChanged: true
+                },
+                resources: {
+                    subscribe: true,
+                    listChanged: true
+                },
+                prompts: {
+                    listChanged: true
+                },
+                logging: {}
             }
         });
         // Create transport manager

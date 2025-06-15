@@ -299,7 +299,7 @@ Return as JSON array:
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, // 복잡한 분석에는 Opus 사용
             { timeout: 45000, priority: 'high' });
-            const aiBottlenecks = JSON.parse(result.response);
+            const aiBottlenecks = JSON.parse(result.response || '[]');
             // 신뢰도가 높은 분석만 반환
             return aiBottlenecks
                 .filter(bottleneck => bottleneck.confidence > 0.7)
@@ -508,7 +508,7 @@ Return optimized actions in same JSON format, maintaining only the most effectiv
 `;
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, { timeout: 30000, priority: 'medium' });
-            const optimizedActions = JSON.parse(result.response);
+            const optimizedActions = JSON.parse(result.response || '[]');
             logger_js_1.default.info('Action plan optimized', {
                 originalActions: actions.length,
                 optimizedActions: optimizedActions.length,

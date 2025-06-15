@@ -297,7 +297,7 @@ Select the most appropriate base specialist type for this task:
 **Leadership Required**: ${request.leadershipRequired}
 
 **Available Base Types**:
-${Object.keys(SPECIALISTS).map(type => `- ${type}: ${SPECIALISTS[type].description}`).join('\n')}
+${Object.keys(SPECIALISTS).map(type => `- ${type}: ${SPECIALISTS[type as keyof typeof SPECIALISTS].description}`).join('\n')}
 
 Consider:
 1. Primary skill alignment
@@ -312,11 +312,15 @@ Return just the specialist type name that best matches.
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'sonnet', // 빠른 선택을 위해 Sonnet 사용
+        {
+          taskId: `specialist_select_${Date.now()}`,
+          timestamp: new Date(),
+          sessionId: 'advanced_specialist_engine'
+        }, // 빠른 선택을 위해 Sonnet 사용
         { timeout: 20000, priority: 'medium' }
       );
 
-      const selectedType = result.response.trim();
+      const selectedType = result.response?.trim() || 'algorithm-specialist';
       
       if (selectedType in SPECIALISTS) {
         return selectedType;
@@ -349,7 +353,7 @@ Generate detailed customization for a ${baseType} specialist:
 - Quality Requirements: ${Math.round(request.qualityRequirements * 100)}%
 
 **Base Specialist**: ${baseType}
-**Base Capabilities**: ${SPECIALISTS[baseType]?.capabilities.join(', ') || 'Unknown'}
+**Base Capabilities**: ${SPECIALISTS[baseType as keyof typeof SPECIALISTS]?.capabilities.join(', ') || 'Unknown'}
 
 Generate customizations:
 1. Specialized skills beyond base capabilities
@@ -389,7 +393,7 @@ Return as JSON:
         { timeout: 45000, priority: 'high' }
       );
 
-      return JSON.parse(result.response);
+      return JSON.parse(result.response || '{}');
     } catch (error) {
       logger.warn('AI specialist customization failed, using fallback', { error });
       return this.generateFallbackCustomization(request, baseType);
@@ -407,7 +411,7 @@ Return as JSON:
     const skillProfile: Record<string, SpecialistSkill> = {};
     
     // 기본 스킬 추가
-    const baseSpecialist = SPECIALISTS[baseType];
+    const baseSpecialist = SPECIALISTS[baseType as keyof typeof SPECIALISTS];
     if (baseSpecialist?.skills) {
       Object.entries(baseSpecialist.skills).forEach(([skill, level]) => {
         skillProfile[skill] = this.createSkillFromBase(skill, level as number, customization);
@@ -459,7 +463,11 @@ Return as JSON:
       speedScore: 0.6 + (Math.random() * 0.35), // 개인차 반영
       innovationScore: 0.5 + (Math.random() * 0.4),
       reliabilityScore: 0.75 + (avgSkillLevel * 0.2),
-      mentorshipScore: 0.4 + (Math.random() * 0.5)
+      mentorshipScore: 0.4 + (Math.random() * 0.5),
+      recentProjects: [] as any[],
+      strengths: [] as string[],
+      weaknesses: [] as string[],
+      improvementAreas: [] as string[]
     };
 
     // 복잡도와 요구사항에 따른 조정
@@ -472,13 +480,12 @@ Return as JSON:
       basePerformance.innovationScore *= 1.3;
     }
 
-    return {
-      ...basePerformance,
-      recentProjects: [],
-      strengths: this.identifyStrengths(skillProfile, basePerformance),
-      weaknesses: this.identifyWeaknesses(skillProfile, basePerformance),
-      improvementAreas: this.identifyImprovementAreas(skillProfile, request)
-    };
+    // Update with computed values
+    basePerformance.strengths = this.identifyStrengths(skillProfile, basePerformance);
+    basePerformance.weaknesses = this.identifyWeaknesses(skillProfile, basePerformance);
+    basePerformance.improvementAreas = this.identifyImprovementAreas(skillProfile, request);
+    
+    return basePerformance;
   }
 
   /**
@@ -582,7 +589,7 @@ Return as JSON:
       baseType,
       level: customization.experienceLevel,
       skills: skillProfile,
-      expertise: [...(SPECIALISTS[baseType]?.capabilities || []), ...customization.specializations],
+      expertise: [...(SPECIALISTS[baseType as keyof typeof SPECIALISTS]?.capabilities || []), ...customization.specializations],
       experienceYears: customization.experienceYears,
       specializations: customization.specializations,
       adaptability: adaptationProfile.adaptability,
@@ -683,7 +690,7 @@ Return as JSON:
         { timeout: 45000, priority: 'medium' }
       );
 
-      const planData = JSON.parse(result.response);
+      const planData = JSON.parse(result.response || '{}');
       
       return {
         specialistId: specialist.id,
@@ -854,7 +861,7 @@ Return as JSON:
     const specialistTypes = Object.keys(SPECIALISTS);
     
     for (const type of specialistTypes) {
-      const specialist = SPECIALISTS[type];
+      const specialist = SPECIALISTS[type as keyof typeof SPECIALISTS];
       if (specialist.skills && request.requiredSkills.some(skill => skill in specialist.skills)) {
         return type;
       }
@@ -1289,7 +1296,8 @@ Return as JSON:
           description: 'Assess progress halfway through',
           targetDate: Date.now() + (60 * 24 * 60 * 60 * 1000), // 60 days
           successCriteria: ['Skill improvement visible'],
-          skillRequirements: {}
+          skillRequirements: {},
+          rewards: ['Performance bonus', 'Skill certification']
         }
       ]
     };

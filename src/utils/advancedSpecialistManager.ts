@@ -305,7 +305,7 @@ Return optimized request as JSON:
         { timeout: 45000, priority: 'high' }
       );
 
-      const optimizedData = JSON.parse(result.response);
+      const optimizedData = JSON.parse(result.response || '{}');
       
       // 최적화된 요청 생성
       return {
@@ -460,7 +460,7 @@ Return specialist profile as JSON:
         { timeout: 45000, priority: 'medium' }
       );
 
-      const specialistData = JSON.parse(result.response);
+      const specialistData = JSON.parse(result.response || '{}');
       
       return this.buildSpecialistFromAIData(specialistData, primarySkill, request);
 
@@ -574,7 +574,7 @@ Return hybrid specialist profile with multiple skill proficiencies and unique hy
         { timeout: 45000, priority: 'medium' }
       );
 
-      const hybridData = JSON.parse(result.response);
+      const hybridData = JSON.parse(result.response || '{}');
       
       const hybridSpecialist = this.buildSpecialistFromAIData(hybridData, 'hybrid_specialist', request);
       
@@ -655,7 +655,7 @@ Return optimal selection as JSON:
         { timeout: 60000, priority: 'medium' }
       );
 
-      const optimization = JSON.parse(result.response);
+      const optimization = JSON.parse(result.response || '{}');
       
       const selectedSpecialists = candidates.filter(spec => 
         optimization.selectedSpecialists.includes(spec.id) || 

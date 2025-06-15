@@ -139,7 +139,7 @@ Return analysis as JSON:
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, // 복잡한 패턴 분석에는 Opus 사용
             { timeout: 60000, priority: 'high' });
-            return JSON.parse(result.response);
+            return JSON.parse(result.response || '{}');
         }
         catch (error) {
             logger_js_1.default.warn('AI collaboration pattern analysis failed, using fallback', { error });
@@ -284,7 +284,7 @@ Return as JSON:
 `;
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, { timeout: 90000, priority: 'high' });
-            const recommendations = JSON.parse(result.response);
+            const recommendations = JSON.parse(result.response || '{}');
             // 추천사항 검증 및 보정
             return this.validateAndEnhanceRecommendations(recommendations, teams);
         }

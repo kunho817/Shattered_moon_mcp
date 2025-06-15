@@ -105,7 +105,7 @@ Return optimized request as JSON:
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, // 복잡한 분석에는 Opus 사용
             { timeout: 45000, priority: 'high' });
-            const optimizedData = JSON.parse(result.response);
+            const optimizedData = JSON.parse(result.response || '{}');
             // 최적화된 요청 생성
             return {
                 ...request,
@@ -235,7 +235,7 @@ Return specialist profile as JSON:
 `;
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, { timeout: 45000, priority: 'medium' });
-            const specialistData = JSON.parse(result.response);
+            const specialistData = JSON.parse(result.response || '{}');
             return this.buildSpecialistFromAIData(specialistData, primarySkill, request);
         }
         catch (error) {
@@ -332,7 +332,7 @@ Return hybrid specialist profile with multiple skill proficiencies and unique hy
 `;
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, { timeout: 45000, priority: 'medium' });
-            const hybridData = JSON.parse(result.response);
+            const hybridData = JSON.parse(result.response || '{}');
             const hybridSpecialist = this.buildSpecialistFromAIData(hybridData, 'hybrid_specialist', request);
             // 하이브리드 전용 커스터마이제이션 추가
             hybridSpecialist.customizations.push({
@@ -397,7 +397,7 @@ Return optimal selection as JSON:
 `;
         try {
             const result = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(prompt, { taskId: 'task', timestamp: new Date() }, { timeout: 60000, priority: 'medium' });
-            const optimization = JSON.parse(result.response);
+            const optimization = JSON.parse(result.response || '{}');
             const selectedSpecialists = candidates.filter(spec => optimization.selectedSpecialists.includes(spec.id) ||
                 optimization.selectedSpecialists.includes(spec.name));
             logger_js_1.default.info('Specialist combination optimized', {
