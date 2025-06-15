@@ -254,6 +254,45 @@ async function setupTools(server) {
                 },
                 required: ['metric']
             }
+        },
+        {
+            name: 'real_time_task_monitor',
+            description: 'Advanced real-time monitoring and optimization of distributed task execution',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    planId: {
+                        type: 'string',
+                        description: 'Specific execution plan ID to monitor'
+                    },
+                    action: {
+                        type: 'string',
+                        enum: ['status', 'optimize', 'alerts', 'metrics', 'rebalance'],
+                        description: 'Monitoring action to perform'
+                    },
+                    filters: {
+                        type: 'object',
+                        properties: {
+                            teams: {
+                                type: 'array',
+                                items: { type: 'string' },
+                                description: 'Filter by specific teams'
+                            },
+                            taskStatus: {
+                                type: 'string',
+                                enum: ['pending', 'in_progress', 'completed', 'blocked'],
+                                description: 'Filter by task status'
+                            },
+                            alertLevel: {
+                                type: 'string',
+                                enum: ['info', 'warning', 'error'],
+                                description: 'Filter by alert level'
+                            }
+                        }
+                    }
+                },
+                required: ['action']
+            }
         }
     ];
     // Set up tool call handler
@@ -297,6 +336,11 @@ async function setupTools(server) {
                     const perfParams = index_js_1.PerformanceMetricsSchema.parse(args);
                     const { performanceMetrics } = await Promise.resolve().then(() => __importStar(require('./performanceMetrics.js')));
                     return await performanceMetrics(perfParams);
+                case 'real_time_task_monitor':
+                    // Simple validation since this is a new tool
+                    const monitorParams = args;
+                    const { realTimeTaskMonitor } = await Promise.resolve().then(() => __importStar(require('./realTimeTaskMonitor.js')));
+                    return await realTimeTaskMonitor(monitorParams);
                 default:
                     throw new types_js_1.McpError(types_js_1.ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
             }

@@ -309,7 +309,7 @@ Return analysis as JSON:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus', // 복잡한 패턴 분석에는 Opus 사용
+        {taskId: 'task', timestamp: new Date()}, // 복잡한 패턴 분석에는 Opus 사용
         { timeout: 60000, priority: 'high' }
       );
 
@@ -480,7 +480,7 @@ Return as JSON:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus',
+        {taskId: 'task', timestamp: new Date()},
         { timeout: 90000, priority: 'high' }
       );
 

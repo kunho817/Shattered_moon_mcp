@@ -60,6 +60,19 @@ export class EnhancedClaudeCodeManager {
   }
 
   /**
+   * Simple AI analysis with model preference (backward compatibility)
+   */
+  async analyzeWithModel(
+    prompt: string,
+    model: 'opus' | 'sonnet' = 'opus'
+  ): Promise<AIAnalysisResult> {
+    return this.performEnhancedAnalysis(prompt, {}, {
+      priority: 'medium',
+      useCache: true
+    });
+  }
+
+  /**
    * Enhanced AI analysis with caching and context awareness
    */
   async performEnhancedAnalysis(
@@ -69,6 +82,8 @@ export class EnhancedClaudeCodeManager {
       priority?: 'high' | 'medium' | 'low';
       forceRefresh?: boolean;
       timeout?: number;
+      useCache?: boolean;
+      retryAttempts?: number;
     } = {}
   ): Promise<AIAnalysisResult> {
     const startTime = Date.now();
@@ -96,25 +111,87 @@ export class EnhancedClaudeCodeManager {
     }
 
     try {
-      // Enhance prompt with context
+      // Enhanced context-aware prompt
       const enhancedPrompt = this.enhancePromptWithContext(prompt, context);
       
       // Classify and route to appropriate model
       const classification = claudeCodeInvoker.classifyTask(enhancedPrompt, context.taskId);
-      const response = await claudeCodeInvoker.invoke(enhancedPrompt, {
-        model: classification.suggestedModel,
-        timeout: options.timeout || 20000
-      });
+      
+      // Implement retry mechanism with exponential backoff
+      const maxRetries = options.retryAttempts || 3;
+      let lastError: Error | null = null;
+      let result: AIAnalysisResult | null = null;
+      
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          logger.info(`Enhanced analysis attempt ${attempt + 1}/${maxRetries}`, { 
+            model: classification.suggestedModel,
+            timeout: options.timeout || 30000
+          });
+          
+          // Increased timeout with retry attempts
+          const timeoutMs = (options.timeout || 30000) + (attempt * 10000);
+          
+          const response = await Promise.race([
+            claudeCodeInvoker.invoke(enhancedPrompt, {
+              model: classification.suggestedModel,
+              timeout: timeoutMs
+            }),
+            new Promise<any>((_, reject) => 
+              setTimeout(() => reject(new Error(`Analysis timeout after ${timeoutMs}ms`)), timeoutMs)
+            )
+          ]);
 
-      const result: AIAnalysisResult = {
-        success: response.success,
-        data: response.success ? this.parseAIResponse(response.output) : null,
-        analysis: response.output,
-        response: response.output,
-        cacheHit: false,
-        duration: Date.now() - startTime,
-        modelUsed: classification.suggestedModel
-      };
+          // Validate response completeness
+          if (!response.success || !response.output || response.output.trim().length < 10) {
+            throw new Error(`Incomplete response: ${response.output?.substring(0, 100)}...`);
+          }
+
+          result = {
+            success: response.success,
+            data: response.success ? this.parseAIResponse(response.output) : null,
+            analysis: response.output,
+            response: response.output,
+            cacheHit: false,
+            duration: Date.now() - startTime,
+            modelUsed: classification.suggestedModel
+          };
+
+          // Success - exit retry loop
+          logger.info('Enhanced analysis completed successfully', { 
+            attempt: attempt + 1,
+            duration: result.duration
+          });
+          
+          break;
+          
+        } catch (error) {
+          lastError = error as Error;
+          logger.warn(`Analysis attempt ${attempt + 1} failed`, { 
+            error: lastError.message,
+            willRetry: attempt < maxRetries - 1
+          });
+          
+          if (attempt < maxRetries - 1) {
+            // Wait before retry with exponential backoff
+            const waitTime = Math.pow(2, attempt) * 1000;
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
+        }
+      }
+      
+      // If no successful result, create failure result
+      if (!result) {
+        result = {
+          success: false,
+          data: null,
+          analysis: `Analysis failed after ${maxRetries} attempts: ${lastError?.message}`,
+          response: `Analysis failed after ${maxRetries} attempts: ${lastError?.message}`,
+          cacheHit: false,
+          duration: Date.now() - startTime,
+          modelUsed: classification.suggestedModel
+        };
+      }
 
       // Cache successful results
       if (result.success) {

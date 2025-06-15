@@ -108,10 +108,10 @@ Provide resolution strategies:
 4. Risk mitigation steps
 
 Respond in JSON format with array of: {conflictId, strategy, priority, estimatedTime, risks, steps}`;
-                        const resolutionResponse = await claudeCodeInvoker.invokePlanning(resolutionPrompt, { timeout: 20000 });
+                        const resolutionResponse = await enhancedClaudeCodeManager_js_1.enhancedClaudeCodeManager.performEnhancedAnalysis(resolutionPrompt, { timestamp: new Date(), sessionId: `coordination_${Date.now()}` }, { timeout: 20000 });
                         if (resolutionResponse.success) {
                             try {
-                                const resolutionStrategies = JSON.parse(resolutionResponse.output);
+                                const resolutionStrategies = JSON.parse(resolutionResponse.analysis || '[]');
                                 conflicts.forEach((conflict, index) => {
                                     const strategy = resolutionStrategies[index] || {
                                         strategy: 'manual_intervention_required',

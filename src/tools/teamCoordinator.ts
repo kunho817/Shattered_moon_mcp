@@ -127,12 +127,13 @@ Respond in JSON format with array of: {conflictId, strategy, priority, estimated
 
             const resolutionResponse = await enhancedClaudeCodeManager.performEnhancedAnalysis(
               resolutionPrompt,
+              { timestamp: new Date(), sessionId: `coordination_${Date.now()}` },
               { timeout: 20000 }
             );
 
             if (resolutionResponse.success) {
               try {
-                const resolutionStrategies = JSON.parse(resolutionResponse.output);
+                const resolutionStrategies = JSON.parse(resolutionResponse.analysis || '[]');
                 conflicts.forEach((conflict, index) => {
                   const strategy = resolutionStrategies[index] || {
                     strategy: 'manual_intervention_required',

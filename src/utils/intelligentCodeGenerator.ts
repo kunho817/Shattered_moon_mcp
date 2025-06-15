@@ -517,7 +517,7 @@ Return optimized request with enhancements as JSON:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus', // 복잡한 요구사항 분석에는 Opus 사용
+        {taskId: 'task', timestamp: new Date()}, // 복잡한 요구사항 분석에는 Opus 사용
         { timeout: 45000, priority: 'high' }
       );
 
@@ -815,7 +815,7 @@ Return detailed analysis as JSON:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus', // 복잡한 분석에는 Opus 사용
+        {taskId: 'task', timestamp: new Date()}, // 복잡한 분석에는 Opus 사용
         { timeout: 60000, priority: 'medium' }
       );
 
@@ -1047,12 +1047,15 @@ Return as JSON:
   }
 
   private generateTemplateFile(request: CodeGenerationRequest): GeneratedFile {
-    const templates = {
+    const templates: Record<string, string> = {
       'component': this.generateComponentTemplate(request.name),
       'system': this.generateSystemTemplate(request.name),
       'shader': this.generateShaderTemplate(request.name),
       'event': this.generateEventTemplate(request.name),
-      'utility': this.generateUtilityTemplate(request.name)
+      'utility': this.generateUtilityTemplate(request.name),
+      'test': `// Test template for ${request.name}`,
+      'algorithm': `// Algorithm template for ${request.name}`,
+      'interface': `// Interface template for ${request.name}`
     };
 
     const content = templates[request.type] || `// Generated ${request.type}: ${request.name}`;
@@ -1696,6 +1699,64 @@ private:
     this.generationHistory = [];
     this.performanceCache.clear();
     logger.info('Intelligent code generator reset');
+  }
+  /**
+   * Refine generation strategy with detailed planning
+   */
+  private async refineGenerationStrategy(
+    request: CodeGenerationRequest,
+    strategy: CodeGenerationStrategy,
+    specialists: any[]
+  ): Promise<any> {
+    return {
+      ...strategy,
+      specialists,
+      refined: true,
+      steps: [
+        { phase: 'analysis', duration: 5 },
+        { phase: 'design', duration: 10 },
+        { phase: 'implementation', duration: 20 },
+        { phase: 'optimization', duration: 5 }
+      ]
+    };
+  }
+
+  /**
+   * Generate supporting files for the code
+   */
+  private async generateSupportingFiles(
+    request: CodeGenerationRequest,
+    mainCode: GeneratedCode
+  ): Promise<GeneratedCode[]> {
+    const supportingFiles: GeneratedCode[] = [];
+
+    // Generate header files for components/systems
+    if (request.type === 'component' || request.type === 'system') {
+      supportingFiles.push({
+        type: request.type,
+        name: `${request.name}_interface`,
+        code: `// Interface for ${request.name}`,
+        language: 'cpp',
+        quality: { score: 0.9, issues: [], suggestions: [] },
+        dependencies: [],
+        tests: [],
+        documentation: {
+          overview: `Interface documentation for ${request.name}`,
+          usage: [],
+          apiReference: [],
+          performanceNotes: [],
+          limitations: [],
+          futureEnhancements: []
+        },
+        metadata: {
+          complexity: 'low',
+          estimatedTime: 5,
+          reviewStatus: 'auto-generated'
+        }
+      });
+    }
+
+    return supportingFiles;
   }
 }
 

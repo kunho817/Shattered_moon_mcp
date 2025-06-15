@@ -7,15 +7,19 @@ export interface BatchRequest {
     cacheKey?: string;
 }
 export interface EnhancedContext {
-    taskId: string;
-    teamStates: Map<string, any>;
-    specialistStates: Map<string, any>;
-    historicalPatterns: any[];
-    currentMetrics: any;
+    taskId?: string;
+    teamStates?: Map<string, any>;
+    specialistStates?: Map<string, any>;
+    historicalPatterns?: any[];
+    currentMetrics?: any;
+    timestamp?: Date;
+    sessionId?: string;
 }
 export interface AIAnalysisResult {
     success: boolean;
     data: any;
+    analysis?: string;
+    response?: string;
     cacheHit: boolean;
     duration: number;
     modelUsed: 'opus' | 'sonnet';
@@ -30,12 +34,18 @@ export declare class EnhancedClaudeCodeManager {
     static getInstance(): EnhancedClaudeCodeManager;
     constructor();
     /**
+     * Simple AI analysis with model preference (backward compatibility)
+     */
+    analyzeWithModel(prompt: string, model?: 'opus' | 'sonnet'): Promise<AIAnalysisResult>;
+    /**
      * Enhanced AI analysis with caching and context awareness
      */
     performEnhancedAnalysis(prompt: string, context: EnhancedContext, options?: {
         priority?: 'high' | 'medium' | 'low';
         forceRefresh?: boolean;
         timeout?: number;
+        useCache?: boolean;
+        retryAttempts?: number;
     }): Promise<AIAnalysisResult>;
     /**
      * Batch processing for multiple AI requests

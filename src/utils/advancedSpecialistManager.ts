@@ -301,7 +301,7 @@ Return optimized request as JSON:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus', // 복잡한 분석에는 Opus 사용
+        {taskId: 'task', timestamp: new Date()}, // 복잡한 분석에는 Opus 사용
         { timeout: 45000, priority: 'high' }
       );
 
@@ -456,7 +456,7 @@ Return specialist profile as JSON:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus',
+        {taskId: 'task', timestamp: new Date()},
         { timeout: 45000, priority: 'medium' }
       );
 
@@ -570,7 +570,7 @@ Return hybrid specialist profile with multiple skill proficiencies and unique hy
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus',
+        {taskId: 'task', timestamp: new Date()},
         { timeout: 45000, priority: 'medium' }
       );
 
@@ -651,7 +651,7 @@ Return optimal selection as JSON:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus',
+        {taskId: 'task', timestamp: new Date()},
         { timeout: 60000, priority: 'medium' }
       );
 

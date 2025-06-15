@@ -448,7 +448,7 @@ Return as JSON array:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus', // 복잡한 분석에는 Opus 사용
+        {taskId: 'task', timestamp: new Date()}, // 복잡한 분석에는 Opus 사용
         { timeout: 45000, priority: 'high' }
       );
 
@@ -727,7 +727,7 @@ Return optimized actions in same JSON format, maintaining only the most effectiv
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus',
+        {taskId: 'task', timestamp: new Date()},
         { timeout: 30000, priority: 'medium' }
       );
 

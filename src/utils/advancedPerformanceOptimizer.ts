@@ -461,7 +461,7 @@ Return as JSON array of strings:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus',
+        {taskId: 'task', timestamp: new Date()},
         { timeout: 30000, priority: 'medium' }
       );
 
@@ -522,7 +522,7 @@ Return as JSON:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus',
+        {taskId: 'task', timestamp: new Date()},
         { timeout: 45000, priority: 'high' }
       );
 

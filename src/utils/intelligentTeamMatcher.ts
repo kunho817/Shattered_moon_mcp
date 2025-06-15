@@ -380,7 +380,7 @@ Return as JSON array:
     try {
       const result = await enhancedClaudeCodeManager.performEnhancedAnalysis(
         prompt,
-        'opus', // 복잡한 팀 구성에는 Opus 사용
+        {taskId: 'task', timestamp: new Date()}, // 복잡한 팀 구성에는 Opus 사용
         { timeout: 60000, priority: 'high' }
       );
 
@@ -914,7 +914,7 @@ Return as JSON array:
           team: teamName,
           role: i === 0 ? 'Team Lead' : 'Developer',
           skills: this.generateSkillsForTeam(teamName),
-          expertise: teamData.capabilities.slice(0, 3),
+          expertise: teamData.specialists.slice(0, 3),
           experience: Math.floor(Math.random() * 15) + 1,
           availability: 0.6 + Math.random() * 0.4,
           workload: Math.random() * 0.8,
@@ -992,7 +992,7 @@ Return as JSON array:
 
     const skillCoverage: Record<string, number> = {};
     task.requiredSkills.forEach(skill => {
-      const memberWithSkill = members.find(m => m.skills[skill] && m.skills[skill] > 0.3);
+      const memberWithSkill = members.find((m: TeamMember) => m.skills[skill] && m.skills[skill] > 0.3);
       skillCoverage[skill] = memberWithSkill ? memberWithSkill.skills[skill] : 0;
     });
 
